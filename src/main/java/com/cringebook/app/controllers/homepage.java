@@ -10,18 +10,16 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-
-
-
 public class homepage {
 
     @Autowired
     private InterestRepo interestRepo;
 
-    @GetMapping("/home")
-    public String home(){
-        return "Hello world";
-    }
+//    @GetMapping("/home")
+//    public String home(){
+//
+//        return "Hello world";
+//    }
 
     @GetMapping("/show")
     public List<Interest> show() {

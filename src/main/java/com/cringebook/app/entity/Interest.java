@@ -6,7 +6,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 
 @Entity(name="simple_interest")
-
 public class Interest {
     public Integer getIntital_balance() {
         return intital_balance;
@@ -17,7 +16,6 @@ public class Interest {
     }
 
     @Id
-
     @Column(name="id")
     private Integer id;
 
