@@ -11,11 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
@@ -47,8 +46,27 @@ public class AddPhoto {
     }
 
     @PostMapping("/save_photos")
-    public ResponseEntity<Integer> savePhoto(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, String photo, Integer episodeId){
+    public ResponseEntity<Integer> savePhoto(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, String photo, Integer episodeId, MultipartFile image){
+        if (image.isEmpty()){
+            return new ResponseEntity<>(0, HttpStatus.NOT_FOUND);
+        }
+        try{
+        System.out.println(image.getName() + "  " + image.getSize() + "  " + image.getOriginalFilename());
         System.out.println("episodeId " + episodeId );
+
+        // saving uploaded file to directory
+
+        String uploadDir = "uploads/";
+        File directory = new File(uploadDir);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
+        String filepath = "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + image.getOriginalFilename();
+        image.transferTo(new File(filepath));}
+        catch (Exception e){System.out.println(e.toString());}
+
+
         Integer user_id = authentication.getIdFromToken(jwtToken);
         Integer epiUserId = photoRepo.getUserIdForEpisodeId(episodeId);
         if (user_id !=0  && Objects.equals(epiUserId, user_id)){
