@@ -1,0 +1,64 @@
+package com.cringebook.app.controllers;
+
+
+import com.cringebook.app.entity.Episode;
+import com.cringebook.app.entity.Interest;
+import com.cringebook.app.entity.Photo;
+import com.cringebook.app.repository.EpisodeRepo;
+import com.cringebook.app.repository.MemoryRepo;
+import com.cringebook.app.repository.PhotoRepo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Objects;
+
+@RestController
+public class AddPhoto {
+
+    @Autowired
+    private PhotoRepo photoRepo;
+
+    @Autowired
+    private EpisodeRepo episodeRepo;
+
+    Authentication authentication = new Authentication();
+    @GetMapping("/show_photos")
+    public ResponseEntity<List<Photo>> getPhoto(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer episodeId){
+        System.out.println("episodeId " + episodeId );
+        Integer user_id = authentication.getIdFromToken(jwtToken);
+        Integer epiUserId = photoRepo.getUserIdForEpisodeId(episodeId);
+        System.out.println("epiUserId " + epiUserId );
+        System.out.println("user_id " + user_id );
+        if (user_id !=0  && Objects.equals(epiUserId, user_id)){
+            try{
+                List<Photo> photos= photoRepo.findByEpisodeId(episodeId);
+                return new ResponseEntity<>(photos, HttpStatus.OK);
+            } catch (Exception e) {
+                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }return new ResponseEntity<>(null, HttpStatus.OK);
+    }
+
+    @PostMapping("/save_photos")
+    public ResponseEntity<Integer> savePhoto(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, String photo, Integer episodeId){
+        System.out.println("episodeId " + episodeId );
+        Integer user_id = authentication.getIdFromToken(jwtToken);
+        Integer epiUserId = photoRepo.getUserIdForEpisodeId(episodeId);
+        if (user_id !=0  && Objects.equals(epiUserId, user_id)){
+            Photo photoObj = new Photo(episodeId, photo);
+            try{
+                Photo insertedPhoto = photoRepo.save(photoObj);
+                return new ResponseEntity<>(insertedPhoto.getPhoto_id(), HttpStatus.OK);
+            } catch (Exception e) {
+                return new ResponseEntity<>(0, HttpStatus.FORBIDDEN);
+            }
+        }return new ResponseEntity<>(0, HttpStatus.OK);
+    }
+}

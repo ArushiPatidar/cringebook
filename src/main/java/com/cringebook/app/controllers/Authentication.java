@@ -63,7 +63,7 @@ public class Authentication {
         return "Hello world to mr " + userId;
     }
 
-    private Integer getIdFromToken(String jwtToken){
+    public Integer getIdFromToken(String jwtToken){
         try {
             DecodedJWT decodedJWT = verifier.verify(jwtToken);
             Claim claim = decodedJWT.getClaim("userId");
