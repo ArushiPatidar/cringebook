@@ -8,10 +8,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 public class AddMemory {
@@ -29,9 +33,9 @@ public class AddMemory {
     @GetMapping("/show_memory")
     public ResponseEntity<List<Memory>> getMemory(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer userId) {
         Integer userId2 = authentication.getIdFromToken(jwtToken);
-        if (userId !=0 & Objects.equals(userId2, userId)){
+        if (true || userId !=0 & Objects.equals(userId2, userId)){
             try{
-                List<Memory> memories= memoryRepo.findByUserId(userId);
+                List<Memory> memories= memoryRepo.findByUserId(userId2);
                 return new ResponseEntity<>(memories, HttpStatus.OK);
             }catch (Exception e){
                 return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -40,8 +44,14 @@ public class AddMemory {
     }
 
     @PostMapping("/save memory")
-    public ResponseEntity<Integer> saveMemory(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, String photo, String title, String description){
+    public ResponseEntity<Integer> saveMemory(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, String photo, String title, String description, MultipartFile image) throws IOException {
         Integer userId = authentication.getIdFromToken(jwtToken);
+        if (image != null && !image.isEmpty()){
+            String uuid = UUID.randomUUID().toString();
+            String filepath = "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + uuid + image.getOriginalFilename();
+            image.transferTo(new File(filepath));
+            photo = uuid + image.getOriginalFilename();
+        }
         if (userId != 0) {
             Memory memory = new Memory(userId, photo, title, description);
             try {

@@ -4,15 +4,20 @@ import com.cringebook.app.entity.Episode;
 import com.cringebook.app.entity.Memory;
 import com.cringebook.app.repository.EpisodeRepo;
 import com.cringebook.app.repository.MemoryRepo;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 public class AddEpisode {
@@ -45,8 +50,14 @@ public class AddEpisode {
     }
 
     @PostMapping("/save episode")
-    public ResponseEntity<Integer> saveEpisode(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, String photo, String title, String description, Integer memoryId){
+    public ResponseEntity<Integer> saveEpisode(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, String photo, String title, String description, Integer memoryId, @RequestParam(value = "image", required = false)MultipartFile image) throws IOException {
         Integer user_id = authentication.getIdFromToken(jwtToken);
+        if (image != null && !image.isEmpty()){
+            String uuid = UUID.randomUUID().toString();
+            String filepath = "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + uuid + image.getOriginalFilename();
+            image.transferTo(new File(filepath));
+            photo = uuid + image.getOriginalFilename();
+        }
         if (user_id !=0){
             Optional<Memory> episodeMemory = memoryRepo.findById(memoryId);
             if (episodeMemory.isPresent()){

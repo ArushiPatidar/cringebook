@@ -50,7 +50,7 @@ public class AddPhoto {
     }
 
     @GetMapping("/get_photo_from_url")
-    public ResponseEntity<byte[]> getPhotoFromUrl(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, String url) throws IOException {
+    public ResponseEntity<byte[]> getPhotoFromUrl(String url) throws IOException {
 
         System.out.println("path =  " + "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\"+ url);
         File imgFile = new File("C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + url);
@@ -75,12 +75,6 @@ public class AddPhoto {
             System.out.println("episodeId " + episodeId);
 
             // saving uploaded file to directory
-
-            String uploadDir = "uploads/";
-            File directory = new File(uploadDir);
-            if (!directory.exists()) {
-                directory.mkdirs();
-            }
 
             String filepath = "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + uuid + image.getOriginalFilename();
             image.transferTo(new File(filepath));

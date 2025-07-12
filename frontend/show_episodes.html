@@ -1,0 +1,204 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Show Episodes</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background: #f0f2f5;
+          margin: 0;
+          padding: 0;
+        }
+
+        .topbar {
+          background-color: #3f51b5;
+          color: white;
+          padding: 15px 20px;
+          font-size: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .topbar .title {
+          font-weight: bold;
+        }
+
+        .topbar .actions button {
+          background: white;
+          color: #3f51b5;
+          border: none;
+          padding: 8px 12px;
+          font-weight: bold;
+          border-radius: 6px;
+          cursor: pointer;
+          margin-left: 10px;
+        }
+
+        .topbar .actions button:hover {
+          background-color: #e8eaf6;
+        }
+
+
+        .container {
+          padding: 20px;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 20px;
+          justify-content: center;
+        }
+
+        .episode-card {
+          background: white;
+          width: 300px;
+          border-radius: 12px;
+          box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);
+          overflow: hidden;
+          transition: transform 0.2s;
+        }
+
+        .episode-card:hover {
+          transform: translateY(-5px);
+        }
+
+        .episode-card img {
+          width: 100%;
+          height: 200px;
+          object-fit: cover;
+        }
+
+        .episode-content {
+          padding: 15px;
+        }
+
+        .episode-title {
+          font-size: 18px;
+          font-weight: bold;
+          margin-bottom: 8px;
+        }
+
+        .episode-description {
+          font-size: 14px;
+          color: #555;
+        }
+
+        .message {
+          margin-top: 20px;
+          text-align: center;
+          font-weight: bold;
+          color: red;
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="title">🎞️ Episodes</div>
+    <div class="actions">
+        <button id="backToMemoryBtn">🔙 Back to Memory</button>
+        <button id="addEpisodeBtn">➕ Add Episode</button>
+    </div>
+</div>
+
+<div class="container" id="episodeContainer"></div>
+<div class="message" id="message"></div>
+
+<script>
+    function getTokenFromCookie() {
+      const match = document.cookie.match(/(^| )Authorization=([^;]+)/);
+      return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    function getQueryParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+
+    function fetchEpisodes() {
+      const token = getTokenFromCookie();
+      const memoryId = getQueryParam("memoryId");
+
+      if (!token || !memoryId) {
+        document.getElementById("message").textContent = "Missing token or memory ID.";
+        return;
+      }
+
+      fetch(`http://localhost:8080/show episodes?memoryId=${memoryId}`, {
+        method: "GET",
+        headers: {
+          "Authorization": token
+        }
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to fetch episodes.");
+        return res.json();
+      })
+      .then(episodes => {
+        const container = document.getElementById("episodeContainer");
+        container.innerHTML = "";
+
+        if (!episodes || episodes.length === 0) {
+          document.getElementById("message").textContent = "No episodes found.";
+          return;
+        }
+
+        episodes.forEach(episode => {
+          const card = document.createElement("div");
+          card.className = "episode-card";
+
+          const image = document.createElement("img");
+          image.src = `http://localhost:8080/get_photo_from_url?url=${encodeURIComponent(episode.photo)}`;
+          image.alt = episode.title || "Episode photo";
+
+          const content = document.createElement("div");
+          content.className = "episode-content";
+
+          const title = document.createElement("div");
+          title.className = "episode-title";
+          title.textContent = episode.title || "Untitled Episode";
+
+          const description = document.createElement("div");
+          description.className = "episode-description";
+          description.textContent = episode.description || "No description.";
+
+          content.appendChild(title);
+          content.appendChild(description);
+          card.appendChild(image);
+          card.appendChild(content);
+
+        // ✅ Add click handler to open show_photos.html
+        card.style.cursor = "pointer";
+        card.onclick = () => {
+          // Optional: Store memoryId to support "Back" from photo view
+          sessionStorage.setItem("currentMemoryId", memoryId);
+          window.location.href = `/frontend/show_photos.html?episodeId=${episode.episodeId}`;
+        };
+
+        container.appendChild(card);
+
+        });
+      })
+      .catch(err => {
+        document.getElementById("message").textContent = "Error: " + err.message;
+      });
+    }
+
+    window.onload = fetchEpisodes;
+    document.getElementById("addEpisodeBtn").onclick = () => {
+      const memoryId = new URLSearchParams(window.location.search).get("memoryId");
+      if (memoryId) {
+        window.location.href = `/frontend/add_episode.html?memoryId=${memoryId}`;
+      }
+    };
+    document.getElementById("backToMemoryBtn").onclick = () => {
+      window.location.href = "/frontend/show_memory.html";
+    };
+
+</script>
+
+</body>
+</html>

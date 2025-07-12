@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Memory</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background: #f0f2f5;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 40px;
+        }
+
+        .topbar {
+          background-color: #3f51b5;
+          color: white;
+          padding: 15px 20px;
+          font-size: 20px;
+          width: 100%;
+          text-align: center;
+          margin-bottom: 30px;
+        }
+
+        form {
+          background: white;
+          padding: 25px;
+          border-radius: 10px;
+          box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);
+          width: 400px;
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        label {
+          font-weight: bold;
+        }
+
+        input, textarea {
+          padding: 10px;
+          border-radius: 6px;
+          border: 1px solid #ccc;
+          width: 100%;
+        }
+
+        button {
+          background-color: #4caf50;
+          color: white;
+          padding: 12px;
+          border: none;
+          border-radius: 6px;
+          font-size: 16px;
+          cursor: pointer;
+        }
+
+        button:hover {
+          background-color: #388e3c;
+        }
+
+        .message {
+          margin-top: 20px;
+          text-align: center;
+          font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">➕ Add Memory</div>
+
+<form id="memoryForm">
+    <label for="photo">Photo</label>
+    <input type="file" id="photo" name="image" accept="image/*" required>
+
+    <label for="title">Title</label>
+    <input type="text" id="title" name="title" required>
+
+    <label for="description">Description</label>
+    <textarea id="description" name="description" rows="4" required></textarea>
+
+    <button type="submit">Submit Memory</button>
+</form>
+
+<div class="message" id="message"></div>
+
+<script>
+    function getTokenFromCookie() {
+      const match = document.cookie.match(/(^| )Authorization=([^;]+)/);
+      return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    document.getElementById("memoryForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const token = getTokenFromCookie();
+      if (!token) {
+        document.getElementById("message").textContent = "You are not logged in.";
+        return;
+      }
+
+      const form = e.target;
+      const formData = new FormData();
+      formData.append("image", form.photo.files[0]);
+      formData.append("title", form.title.value);
+      formData.append("description", form.description.value);
+      formData.append("photo", "placeholder"); // required by backend, but overwritten on server
+
+      fetch("http://localhost:8080/save memory", {
+        method: "POST",
+        headers: {
+          "Authorization": token
+        },
+        body: formData
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to save memory");
+        return res.text();
+      })
+      .then(response => {
+        document.getElementById("message").textContent = "Memory added successfully!";
+        form.reset();
+        setTimeout(() => window.location.href = "/frontend/show_memory.html", 1500);
+      })
+      .catch(err => {
+        document.getElementById("message").textContent = "Error: " + err.message;
+      });
+    });
+</script>
+
+</body>
+</html>

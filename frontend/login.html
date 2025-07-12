@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f1f1f1;
+          height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .login-form {
+          background: white;
+          padding: 30px 25px;
+          border-radius: 10px;
+          box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);
+          width: 350px;
+        }
+
+        .login-form h2 {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+
+        .login-form label {
+          display: block;
+          margin-bottom: 6px;
+          font-weight: bold;
+        }
+
+        .login-form input {
+          width: 100%;
+          padding: 10px;
+          margin-bottom: 15px;
+          border-radius: 5px;
+          border: 1px solid #ccc;
+        }
+
+        .login-form button {
+          width: 100%;
+          padding: 12px;
+          background-color: #0288d1;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          font-size: 16px;
+          cursor: pointer;
+        }
+
+        .login-form button:hover {
+          background-color: #0277bd;
+        }
+
+        .message {
+          text-align: center;
+          margin-top: 12px;
+          font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-form">
+    <h2>Login</h2>
+    <form id="loginForm">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+
+        <button type="submit">Login</button>
+    </form>
+    <div class="message" id="message"></div>
+</div>
+
+<script>
+    function setCookie(name, value, days) {
+      const expires = new Date(Date.now() + days * 864e5).toUTCString();
+      document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/';
+    }
+
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const form = e.target;
+
+      const formData = new URLSearchParams();
+      formData.append("username", form.username.value);
+      formData.append("password", form.password.value);
+
+      fetch("http://localhost:8080/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: formData.toString()
+      })
+        .then(res => {
+          if (!res.ok) throw new Error("Login failed");
+          return res.text(); // plain token response
+        })
+        .then(token => {
+          setCookie("Authorization", token, 7); // save for 7 days
+          document.getElementById("message").textContent = "Login successful!";
+          // Redirect or load next page here
+        })
+        .catch(err => {
+          document.getElementById("message").textContent = err.message;
+        });
+    });
+
+    // Example: Using the cookie token in future fetches
+    function getTokenFromCookie() {
+      const match = document.cookie.match(new RegExp('(^| )Authorization=([^;]+)'));
+      return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    // Example API call using token from cookie
+    /*
+    fetch("http://localhost:8080/some-protected-endpoint", {
+      method: "GET",
+      headers: {
+        "Authorization": getTokenFromCookie()
+      }
+    })
+    .then(res => res.json())
+    .then(data => console.log(data));
+    */
+</script>
+
+</body>
+</html>
