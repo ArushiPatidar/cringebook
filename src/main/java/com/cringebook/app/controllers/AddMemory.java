@@ -65,8 +65,14 @@ public class AddMemory {
     }
 
     @PutMapping("/update memory")
-    public ResponseEntity<Integer> updateMemory(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer memoryId, String photo, String title, String description){
+    public ResponseEntity<Integer> updateMemory(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer memoryId, String photo, String title, String description, MultipartFile image) throws IOException {
         Integer userId = authentication.getIdFromToken(jwtToken);
+        if (image != null && !image.isEmpty()){
+            String uuid = UUID.randomUUID().toString();
+            String filepath = "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + uuid + image.getOriginalFilename();
+            image.transferTo(new File(filepath));
+            photo = uuid + image.getOriginalFilename();
+        }
         Optional<Memory> memory = memoryRepo.findById(memoryId);
         if (memory.isPresent()){
             Memory memory1 = memory.get();

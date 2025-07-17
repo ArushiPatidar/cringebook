@@ -78,8 +78,14 @@ public class AddEpisode {
     }
 
     @PutMapping("/update episode")
-    public ResponseEntity<Integer> updateEpisode(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, String photo, String title, String description, Integer episodeId){
+    public ResponseEntity<Integer> updateEpisode(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, String title, String description,String photo, Integer episodeId, MultipartFile image ) throws IOException {
         Integer user_id = authentication.getIdFromToken(jwtToken);
+        if (image != null && !image.isEmpty()){
+            String uuid = UUID.randomUUID().toString();
+            String filepath = "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + uuid + image.getOriginalFilename();
+            image.transferTo(new File(filepath));
+            photo = uuid + image.getOriginalFilename();
+        }
         if (user_id != 0){
             Optional<Episode> episode = episodeRepo.findById(episodeId);
             if (episode.isPresent()){
@@ -104,6 +110,19 @@ public class AddEpisode {
         }return new ResponseEntity<>(0, HttpStatus.NOT_FOUND);
     }
 
-
+    @DeleteMapping("/delete_episode")
+    public ResponseEntity<Integer> deleteEpisode(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer episodeId){
+        Optional<Episode> episode = episodeRepo.findById(episodeId);
+        if (episode.isPresent()){
+            try{
+                episodeRepo.deleteById(episodeId);
+                return new ResponseEntity<>(1, HttpStatus.OK);
+            }catch (Exception e){
+                return new ResponseEntity<>(0, HttpStatus.BAD_REQUEST);
+            }
+        }else{
+            return new ResponseEntity<>(0, HttpStatus.NO_CONTENT);
+        }
+    }
 
 }

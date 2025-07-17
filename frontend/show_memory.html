@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,6 +56,7 @@
           box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);
           overflow: hidden;
           transition: transform 0.2s;
+          position: relative;
         }
 
         .memory-card:hover {
@@ -71,10 +73,51 @@
           padding: 15px;
         }
 
+        .memory-title-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          position: relative;
+        }
+
         .memory-title {
           font-size: 18px;
           font-weight: bold;
-          margin-bottom: 8px;
+        }
+
+        .menu-button {
+          background: none;
+          border: none;
+          font-size: 18px;
+          cursor: pointer;
+        }
+
+        .menu {
+          display: none;
+          position: absolute;
+          background: white;
+          border: 1px solid #ccc;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+          border-radius: 6px;
+          z-index: 100;
+          right: 10px;
+          bottom: 40px; /* Menu opens upwards */
+          transform: translateY(-5px); /* Optional upward offset */
+          flex-direction: column;
+          min-width: 100px;
+          padding: 5px 0;
+        }
+        .menu button {
+          padding: 8px 12px;
+          border: none;
+          background: none;
+          text-align: left;
+          width: 100%;
+          cursor: pointer;
+        }
+
+        .menu button:hover {
+          background-color: #f0f0f0;
         }
 
         .memory-description {
@@ -88,6 +131,88 @@
           margin-top: 20px;
           color: red;
         }
+
+        #overlay {
+          position: fixed;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          background: rgba(0,0,0,0.5);
+          display: none;
+          z-index: 998;
+        }
+
+        .modal {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background: white;
+          border-radius: 10px;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+          display: none;
+          z-index: 999;
+          width: 320px;
+          overflow: hidden;
+          animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-header {
+          background-color: #3f51b5;
+          color: white;
+          padding: 12px 16px;
+          font-weight: bold;
+          font-size: 18px;
+        }
+
+        .modal-body {
+          padding: 16px;
+        }
+
+        .modal input[type="text"],
+        .modal textarea {
+          width: 100%;
+          margin-bottom: 12px;
+          padding: 10px;
+          border-radius: 6px;
+          border: 1px solid #ccc;
+          font-size: 14px;
+          font-family: inherit;
+        }
+
+        .modal input[type="file"] {
+          margin-bottom: 12px;
+        }
+
+        .modal-footer {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 10px;
+        }
+
+        .modal-footer button {
+          padding: 8px 14px;
+          border-radius: 6px;
+          font-weight: bold;
+          border: none;
+          cursor: pointer;
+        }
+
+        .modal-footer .save-btn {
+          background-color: #4CAF50;
+          color: white;
+        }
+
+        .modal-footer .cancel-btn {
+          background-color: #f1f1f1;
+          color: #333;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translate(-50%, -60%); }
+          to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
     </style>
 </head>
 <body>
@@ -102,65 +227,166 @@
 <div class="container" id="memoryContainer"></div>
 <div class="message" id="message"></div>
 
+<div id="overlay"></div>
+
+<div id="editModal" class="modal">
+    <div class="modal-header">Edit Memory</div>
+    <div class="modal-body">
+        <input type="text" id="editTitle" placeholder="Title">
+        <textarea id="editDescription" placeholder="Description"></textarea>
+        <input type="file" id="editImage">
+        <div class="modal-footer">
+            <button class="save-btn" onclick="submitEdit()">Save</button>
+            <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="deleteConfirm" class="modal">
+    <h3>Are you sure?</h3>
+    <button onclick="confirmDelete()">Yes, Delete</button>
+    <button onclick="closeModal()">Cancel</button>
+</div>
+
 <script>
+    let currentEditId = null;
+    let currentDeleteId = null;
+
     function getTokenFromCookie() {
       const match = document.cookie.match(/(^| )Authorization=([^;]+)/);
       return match ? decodeURIComponent(match[2]) : null;
     }
 
+    function toggleMenu(id) {
+      document.querySelectorAll('.menu').forEach(m => m.style.display = 'none');
+      const menu = document.getElementById(`menu-${id}`);
+      if (menu) menu.style.display = 'flex';
+    }
+
+    function openEdit(memory) {
+      currentEditId = memory.memoryId;
+      document.getElementById("editTitle").value = memory.title;
+      document.getElementById("editDescription").value = memory.description;
+      document.getElementById("editImage").value = "";
+      document.getElementById("editModal").style.display = "block";
+      document.getElementById("overlay").style.display = "block";
+      document.querySelectorAll('.menu').forEach(m => m.style.display = 'none');
+    }
+
+    function openDelete(id) {
+      currentDeleteId = id;
+      document.getElementById("deleteConfirm").style.display = "block";
+      document.getElementById("overlay").style.display = "block";
+      document.querySelectorAll('.menu').forEach(m => m.style.display = 'none');
+    }
+
+    function closeModal() {
+      document.getElementById("editModal").style.display = "none";
+      document.getElementById("deleteConfirm").style.display = "none";
+      document.getElementById("overlay").style.display = "none";
+    }
+
+    function submitEdit() {
+      const token = getTokenFromCookie();
+      const title = document.getElementById("editTitle").value;
+      const description = document.getElementById("editDescription").value;
+      const fileInput = document.getElementById("editImage");
+
+
+          const formData = new FormData();
+          formData.append("memoryId", currentEditId);
+          if (title) formData.append("title", title);
+          if (description) formData.append("description", description);
+          if (fileInput.files.length > 0) formData.append("image", fileInput.files[0]);
+
+          fetch("http://"+window.location.host+"/update memory", {
+            method: "PUT",
+            headers: { "Authorization": token },
+            body: formData
+
+
+      }).then(() => location.reload());
+    }
+
+    function confirmDelete() {
+      const token = getTokenFromCookie();
+      fetch(`http://${window.location.host}/delete memory?memoryId=${currentDeleteId}`, {
+        method: "DELETE",
+        headers: { "Authorization": token }
+      }).then(() => location.reload());
+    }
+
     function fetchMemories() {
       const token = getTokenFromCookie();
-      if (!token) {
-        document.getElementById("message").textContent = "You are not logged in.";
-        return;
-      }
-
-      fetch("http://localhost:8080/show_memory", {
+      fetch("http://"+window.location.host+"/show_memory", {
         method: "GET",
-        headers: {
-          "Authorization": token
-        }
+        headers: { "Authorization": token }
       })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to fetch memories");
-        return res.json();
-      })
+      .then(res => res.json())
       .then(memories => {
         const container = document.getElementById("memoryContainer");
         container.innerHTML = "";
-
-        if (memories.length === 0) {
-          document.getElementById("message").textContent = "No memories found.";
-          return;
-        }
-
         memories.forEach(memory => {
           const card = document.createElement("div");
           card.className = "memory-card";
 
           const image = document.createElement("img");
-          image.src = `http://localhost:8080/get_photo_from_url?url=${encodeURIComponent(memory.photo)}`;
+          image.src = `http://${window.location.host}/get_photo_from_url?url=${encodeURIComponent(memory.photo)}`;
           image.alt = memory.title;
+          card.appendChild(image);
 
           const content = document.createElement("div");
           content.className = "memory-content";
 
-          const title = document.createElement("div");
-          title.className = "memory-title";
-          title.textContent = memory.title;
+          const titleContainer = document.createElement("div");
+          titleContainer.className = "memory-title-container";
+
+          const titleText = document.createElement("div");
+          titleText.className = "memory-title";
+          titleText.textContent = memory.title;
+
+          const menuButton = document.createElement("button");
+          menuButton.className = "menu-button";
+          menuButton.innerHTML = "⋮";
+          menuButton.onclick = (e) => {
+            e.stopPropagation();
+            toggleMenu(memory.memoryId);
+          };
+
+          const menu = document.createElement("div");
+          menu.className = "menu";
+          menu.id = `menu-${memory.memoryId}`;
+          menu.innerHTML = `
+            <button onclick='event.stopPropagation(); openEdit(${JSON.stringify(memory).replace(/'/g, "&#39;")})'>Edit</button>
+            <button onclick='event.stopPropagation(); openDelete(${memory.memoryId})'>Delete</button>
+        `;
+
+
+          titleContainer.appendChild(titleText);
+          titleContainer.appendChild(menuButton);
+          titleContainer.appendChild(menu);
 
           const description = document.createElement("div");
           description.className = "memory-description";
           description.textContent = memory.description;
 
-          card.addEventListener("click", () => {
-          window.location.href = `/frontend/show_episodes.html?memoryId=${memory.memoryId}`;
-           });
-
-          content.appendChild(title);
+          content.appendChild(titleContainer);
           content.appendChild(description);
-          card.appendChild(image);
           card.appendChild(content);
+
+<!--          card.onclick = () => {-->
+<!--            sessionStorage.setItem("currentMemoryId", memory.memoryId);-->
+<!--            window.location.href = `/frontend/show_episodes.html?memoryId=${memory.memoryId}`;-->
+<!--          };-->
+        card.addEventListener("click", (e) => {
+          // Ignore clicks if they happened inside a button or menu
+          if (e.target.closest(".menu") || e.target.closest(".menu-button")) return;
+
+          sessionStorage.setItem("currentMemoryId", memory.memoryId);
+          window.location.href = `/frontend/show_episodes.html?memoryId=${memory.memoryId}`;
+        });
+
           container.appendChild(card);
         });
       })
@@ -169,8 +395,51 @@
       });
     }
 
+    document.addEventListener("click", () => {
+      document.querySelectorAll(".menu").forEach(m => m.style.display = "none");
+    });
+
     window.onload = fetchMemories;
 </script>
-
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

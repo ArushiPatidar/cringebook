@@ -107,7 +107,7 @@
       formData.append("description", form.description.value);
       formData.append("photo", "placeholder"); // required by backend, but overwritten on server
 
-      fetch("http://localhost:8080/save memory", {
+      fetch("http://"+window.location.host+"/save memory", {
         method: "POST",
         headers: {
           "Authorization": token

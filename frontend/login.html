@@ -92,7 +92,7 @@
       formData.append("username", form.username.value);
       formData.append("password", form.password.value);
 
-      fetch("http://localhost:8080/login", {
+      fetch("http://"+window.location.host+"/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -100,7 +100,13 @@
         body: formData.toString()
       })
         .then(res => {
-          if (!res.ok) throw new Error("Login failed");
+          if (res.ok){
+           document.getElementById("message").textContent = "logIn successful! Redirecting...";
+          setTimeout(() => {
+            window.location.href = "/frontend/show_memory.html";
+          }, 1500);
+          }
+          else throw new Error("Login failed");
           return res.text(); // plain token response
         })
         .then(token => {
@@ -121,7 +127,7 @@
 
     // Example API call using token from cookie
     /*
-    fetch("http://localhost:8080/some-protected-endpoint", {
+    fetch("http://"+window.location.host+"/some-protected-endpoint", {
       method: "GET",
       headers: {
         "Authorization": getTokenFromCookie()

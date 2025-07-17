@@ -80,6 +80,39 @@
     <div class="message" id="message"></div>
 </div>
 
+<!--<script>-->
+<!--    document.getElementById("signupForm").addEventListener("submit", function(e) {-->
+<!--      e.preventDefault();-->
+
+<!--      const form = e.target;-->
+<!--      const formData = new URLSearchParams();-->
+<!--      formData.append("username", form.username.value);-->
+<!--      formData.append("password", form.password.value);-->
+<!--      formData.append("name", form.name.value);-->
+<!--      formData.append("phone number ", form.phone.value); // key matches your curl exactly-->
+<!--      formData.append("email", form.email.value);-->
+
+<!--      fetch("http://"+window.location.host+"/signup", {-->
+<!--        method: "POST",-->
+<!--        headers: {-->
+<!--          "Content-Type": "application/x-www-form-urlencoded"-->
+<!--        },-->
+<!--        body: formData.toString()-->
+<!--      })-->
+<!--      .then(res => {-->
+<!--        if (res.ok) {-->
+<!--          document.getElementById("message").textContent = "Signup successful!";-->
+<!--          form.reset();-->
+<!--        } else {-->
+<!--          return res.text().then(text => { throw new Error(text || "Signup failed"); });-->
+<!--        }-->
+<!--      })-->
+<!--      .catch(err => {-->
+<!--        document.getElementById("message").textContent = "Error: " + err.message;-->
+<!--      });-->
+<!--    });-->
+<!--</script>-->
+
 <script>
     document.getElementById("signupForm").addEventListener("submit", function(e) {
       e.preventDefault();
@@ -89,10 +122,10 @@
       formData.append("username", form.username.value);
       formData.append("password", form.password.value);
       formData.append("name", form.name.value);
-      formData.append("phone number ", form.phone.value); // key matches your curl exactly
+      formData.append("phone number ", form.phone.value); // matches your backend key
       formData.append("email", form.email.value);
 
-      fetch("http://localhost:8080/signup", {
+      fetch("http://" + window.location.host + "/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -101,8 +134,11 @@
       })
       .then(res => {
         if (res.ok) {
-          document.getElementById("message").textContent = "Signup successful!";
-          form.reset();
+          // Optional: show success message briefly
+          document.getElementById("message").textContent = "Signup successful! Redirecting...";
+          setTimeout(() => {
+            window.location.href = "/frontend/login.html";  // <-- Update path if needed
+          }, 1500); // 1.5 second delay before redirect
         } else {
           return res.text().then(text => { throw new Error(text || "Signup failed"); });
         }

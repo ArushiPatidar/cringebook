@@ -256,7 +256,7 @@
     }
 
     function photoUrl(filename) {
-      return `http://localhost:8080/get_photo_from_url?url=${encodeURIComponent(filename)}`;
+      return `http://${window.location.host}/get_photo_from_url?url=${encodeURIComponent(filename)}`;
     }
 
     function fetchPhotos() {
@@ -268,7 +268,7 @@
         return;
       }
 
-      fetch(`http://localhost:8080/show_photos?episodeId=${episodeId}`, {
+      fetch(`http://${window.location.host}/show_photos?episodeId=${episodeId}`, {
         headers: {
           "Authorization": token
         }

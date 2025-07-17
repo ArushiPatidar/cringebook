@@ -127,7 +127,7 @@
         return;
       }
 
-      fetch(`http://localhost:8080/show episodes?memoryId=${memoryId}`, {
+      fetch(`http://${window.location.host}/show episodes?memoryId=${memoryId}`, {
         method: "GET",
         headers: {
           "Authorization": token
@@ -151,7 +151,7 @@
           card.className = "episode-card";
 
           const image = document.createElement("img");
-          image.src = `http://localhost:8080/get_photo_from_url?url=${encodeURIComponent(episode.photo)}`;
+          image.src = `http://${window.location.host}/get_photo_from_url?url=${encodeURIComponent(episode.photo)}`;
           image.alt = episode.title || "Episode photo";
 
           const content = document.createElement("div");

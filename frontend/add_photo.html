@@ -1,8 +1,148 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Add Photo</title>-->
+<!--    <style>-->
+<!--        body {-->
+<!--          font-family: Arial, sans-serif;-->
+<!--          background: #f0f2f5;-->
+<!--          display: flex;-->
+<!--          flex-direction: column;-->
+<!--          align-items: center;-->
+<!--          padding: 40px;-->
+<!--        }-->
+
+<!--        .topbar {-->
+<!--          background-color: #3f51b5;-->
+<!--          color: white;-->
+<!--          padding: 15px 20px;-->
+<!--          font-size: 20px;-->
+<!--          width: 100%;-->
+<!--          text-align: center;-->
+<!--          margin-bottom: 30px;-->
+<!--        }-->
+
+<!--        form {-->
+<!--          background: white;-->
+<!--          padding: 25px;-->
+<!--          border-radius: 10px;-->
+<!--          box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);-->
+<!--          width: 400px;-->
+<!--          display: flex;-->
+<!--          flex-direction: column;-->
+<!--          gap: 15px;-->
+<!--        }-->
+
+<!--        label {-->
+<!--          font-weight: bold;-->
+<!--        }-->
+
+<!--        input {-->
+<!--          padding: 10px;-->
+<!--          border-radius: 6px;-->
+<!--          border: 1px solid #ccc;-->
+<!--          width: 100%;-->
+<!--        }-->
+
+<!--        button {-->
+<!--          background-color: #4caf50;-->
+<!--          color: white;-->
+<!--          padding: 12px;-->
+<!--          border: none;-->
+<!--          border-radius: 6px;-->
+<!--          font-size: 16px;-->
+<!--          cursor: pointer;-->
+<!--        }-->
+
+<!--        button:hover {-->
+<!--          background-color: #388e3c;-->
+<!--        }-->
+
+<!--        .message {-->
+<!--          margin-top: 20px;-->
+<!--          text-align: center;-->
+<!--          font-weight: bold;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+
+<!--<div class="topbar">➕ Add Photo</div>-->
+
+<!--<form id="photoForm">-->
+<!--    <label for="image">Choose Photo</label>-->
+<!--    <input type="file" id="image" name="image" accept="image/*" required>-->
+
+<!--    <label for="photo">Photo Caption / Name</label>-->
+<!--    <input type="text" id="photo" name="photo" placeholder="Optional name or caption">-->
+
+<!--    <button type="submit">Upload Photo</button>-->
+<!--</form>-->
+
+<!--<div class="message" id="message"></div>-->
+
+<!--<script>-->
+<!--    function getTokenFromCookie() {-->
+<!--      const match = document.cookie.match(/(^| )Authorization=([^;]+)/);-->
+<!--      return match ? decodeURIComponent(match[2]) : null;-->
+<!--    }-->
+
+<!--    function getQueryParam(name) {-->
+<!--      const urlParams = new URLSearchParams(window.location.search);-->
+<!--      return urlParams.get(name);-->
+<!--    }-->
+
+<!--    document.getElementById("photoForm").addEventListener("submit", function (e) {-->
+<!--      e.preventDefault();-->
+
+<!--      const token = getTokenFromCookie();-->
+<!--      const episodeId = getQueryParam("episodeId");-->
+
+<!--      if (!token || !episodeId) {-->
+<!--        document.getElementById("message").textContent = "Missing token or episode ID.";-->
+<!--        return;-->
+<!--      }-->
+
+<!--      const form = e.target;-->
+<!--      const formData = new FormData();-->
+<!--      formData.append("image", form.image.files[0]);-->
+<!--      formData.append("photo", form.photo.value || ""); // optional caption-->
+<!--      formData.append("episodeId", episodeId);-->
+
+<!--      fetch("http://"+window.location.host+"/save_photos", {-->
+<!--        method: "POST",-->
+<!--        headers: {-->
+<!--          "Authorization": token-->
+<!--        },-->
+<!--        body: formData-->
+<!--      })-->
+<!--      .then(res => {-->
+<!--        if (!res.ok) throw new Error("Failed to upload photo.");-->
+<!--        return res.text();-->
+<!--      })-->
+<!--      .then(response => {-->
+<!--        document.getElementById("message").textContent = "Photo uploaded!";-->
+<!--        setTimeout(() => {-->
+<!--          window.location.href = `/frontend/show_photos.html?episodeId=${episodeId}`;-->
+<!--        }, 1500);-->
+<!--      })-->
+<!--      .catch(err => {-->
+<!--        document.getElementById("message").textContent = "Error: " + err.message;-->
+<!--      });-->
+<!--    });-->
+<!--</script>-->
+
+<!--</body>-->
+<!--</html>-->
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Add Photo</title>
+    <title>Add Photos</title>
     <style>
         body {
           font-family: Arial, sans-serif;
@@ -64,22 +204,28 @@
           text-align: center;
           font-weight: bold;
         }
+
+        .progress {
+          margin-top: 10px;
+          font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
-<div class="topbar">➕ Add Photo</div>
+<div class="topbar">➕ Add Photos</div>
 
 <form id="photoForm">
-    <label for="image">Choose Photo</label>
-    <input type="file" id="image" name="image" accept="image/*" required>
+    <label for="image">Choose Photos</label>
+    <input type="file" id="image" name="image" accept="image/*" multiple required>
 
     <label for="photo">Photo Caption / Name</label>
-    <input type="text" id="photo" name="photo" placeholder="Optional name or caption">
+    <input type="text" id="photo" name="photo" placeholder="Optional caption for all">
 
-    <button type="submit">Upload Photo</button>
+    <button type="submit">Upload Photos</button>
 </form>
 
+<div class="progress" id="progress"></div>
 <div class="message" id="message"></div>
 
 <script>
@@ -93,43 +239,65 @@
       return urlParams.get(name);
     }
 
-    document.getElementById("photoForm").addEventListener("submit", function (e) {
+    document.getElementById("photoForm").addEventListener("submit", async function (e) {
       e.preventDefault();
 
       const token = getTokenFromCookie();
       const episodeId = getQueryParam("episodeId");
+      const caption = document.getElementById("photo").value || "";
+      const files = document.getElementById("image").files;
+      const progress = document.getElementById("progress");
+      const messageBox = document.getElementById("message");
 
       if (!token || !episodeId) {
-        document.getElementById("message").textContent = "Missing token or episode ID.";
+        messageBox.textContent = "Missing token or episode ID.";
         return;
       }
 
-      const form = e.target;
-      const formData = new FormData();
-      formData.append("image", form.image.files[0]);
-      formData.append("photo", form.photo.value || ""); // optional caption
-      formData.append("episodeId", episodeId);
+      if (files.length === 0) {
+        messageBox.textContent = "Please select at least one photo.";
+        return;
+      }
 
-      fetch("http://localhost:8080/save_photos", {
-        method: "POST",
-        headers: {
-          "Authorization": token
-        },
-        body: formData
-      })
-      .then(res => {
-        if (!res.ok) throw new Error("Failed to upload photo.");
-        return res.text();
-      })
-      .then(response => {
-        document.getElementById("message").textContent = "Photo uploaded!";
+      let successCount = 0;
+      let failureCount = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        const formData = new FormData();
+        formData.append("image", files[i]);
+        formData.append("photo", caption);
+        formData.append("episodeId", episodeId);
+
+        progress.textContent = `Uploading ${i + 1} of ${files.length}...`;
+
+        try {
+          const res = await fetch("http://" + window.location.host + "/save_photos", {
+            method: "POST",
+            headers: {
+              "Authorization": token
+            },
+            body: formData
+          });
+
+          if (!res.ok) throw new Error("Upload failed");
+
+          successCount++;
+        } catch (err) {
+          failureCount++;
+        }
+      }
+
+      progress.textContent = "";
+      if (successCount > 0) {
+        messageBox.textContent = `${successCount} photo(s) uploaded successfully.`;
+        messageBox.style.color = "green";
         setTimeout(() => {
           window.location.href = `/frontend/show_photos.html?episodeId=${episodeId}`;
-        }, 1500);
-      })
-      .catch(err => {
-        document.getElementById("message").textContent = "Error: " + err.message;
-      });
+        }, 2000);
+      } else {
+        messageBox.textContent = `All uploads failed.`;
+        messageBox.style.color = "red";
+      }
     });
 </script>
 
