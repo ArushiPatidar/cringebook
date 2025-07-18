@@ -355,6 +355,8 @@
         memories.forEach(memory => {
             const card = document.createElement("div");
             card.className = "memory-card";
+            card.style.cursor = "pointer";
+            card.onclick = () => viewMemory(memory.memoryId);
 
             // Get user initials for avatar
             const userInitials = memory.userFullName ? 
@@ -377,7 +379,7 @@
                     <div class="memory-title">${escapeHtml(memory.title)}</div>
                     <div class="memory-description">${escapeHtml(memory.description)}</div>
                 </div>
-                <div class="memory-actions">
+                <div class="memory-actions" onclick="event.stopPropagation()">
                     <button class="md-button md-button-text" onclick="toggleLike('memory', ${memory.memoryId})" id="like-btn-${memory.memoryId}">
                         <span class="material-icons" id="like-icon-${memory.memoryId}">favorite_border</span>
                         <span id="like-count-${memory.memoryId}">0</span> Likes

@@ -649,17 +649,17 @@
         }
 
         function startMessage() {
-            window.location.href = 'messages.html?friendId=' + currentUserId;
+            window.location.href = 'messages.html?friendId=' + userId;
         }
 
         function startVideoCall() {
-            if (!currentUserId) {
+            if (!userId) {
                 alert('User information not available');
                 return;
             }
             
             const userName = document.querySelector('.profile-name').textContent;
-            window.open(`video_call.html?friendId=${currentUserId}&friendName=${encodeURIComponent(userName)}`, '_blank');
+            window.open(`video_call.html?friendId=${userId}&friendName=${encodeURIComponent(userName)}`, '_blank');
         }
 
         function escapeHtml(text) {

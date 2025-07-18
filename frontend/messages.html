@@ -476,6 +476,8 @@
             console.error('Error loading user ID:', err);
         });
     }
+    
+    function loadConversations() {
         const token = getTokenFromCookie();
         if (!token) {
             window.location.href = 'login.html';

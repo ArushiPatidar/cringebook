@@ -467,7 +467,7 @@
           likeBtn.innerHTML = `<span class="material-icons">favorite_border</span><span class="like-count">0</span>`;
           likeBtn.onclick = (e) => {
             e.stopPropagation();
-            toggleLike('photo', photo.photoId, likeBtn);
+            toggleLike('photo', photo.photo_id, likeBtn);
           };
           
           // Comment button
@@ -476,7 +476,7 @@
           commentBtn.innerHTML = `<span class="material-icons">comment</span><span class="comment-count">0</span>`;
           commentBtn.onclick = (e) => {
             e.stopPropagation();
-            toggleComments('photo', photo.photoId, interactionDiv);
+            toggleComments('photo', photo.photo_id, interactionDiv);
           };
           
           // View button
@@ -497,7 +497,7 @@
           photoCard.appendChild(interactionDiv);
           
           // Load initial like/comment counts
-          loadInteractionData('photo', photo.photoId, likeBtn, commentBtn);
+          loadInteractionData('photo', photo.photo_id, likeBtn, commentBtn);
 
           container.appendChild(photoCard);
         });
