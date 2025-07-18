@@ -10,6 +10,8 @@ import com.cringebook.app.repository.MemoryRepo;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -43,7 +45,7 @@ public class AddEpisode {
     }
 
     @GetMapping("/show episodes")
-    public ResponseEntity<List<Episode>> getEpisode(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer memoryId) {
+    public ResponseEntity<Map<String, Object>> getEpisode(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer memoryId) {
         Integer requesterId = authentication.getIdFromToken(jwtToken);
         if (requesterId == 0) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
@@ -55,12 +57,20 @@ public class AddEpisode {
             Integer memoryOwnerId = memory.getUserId();
             
             // Check access: owner can view own episodes, friends can view friend's episodes
-            boolean canAccess = requesterId.equals(memoryOwnerId) || areFriends(requesterId, memoryOwnerId);
+            boolean isOwner = requesterId.equals(memoryOwnerId);
+            boolean canAccess = isOwner || areFriends(requesterId, memoryOwnerId);
             
             if (canAccess) {
                 try{
                     List<Episode> episodes = episodeRepo.findByMemoryId(memoryId);
-                    return new ResponseEntity<>(episodes, HttpStatus.OK);
+                    
+                    // Return episodes with metadata
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("episodes", episodes);
+                    response.put("isOwner", isOwner);
+                    response.put("memoryTitle", memory.getTitle());
+                    
+                    return new ResponseEntity<>(response, HttpStatus.OK);
                 }catch (Exception e){
                     return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
                 }

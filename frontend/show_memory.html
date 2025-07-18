@@ -327,11 +327,13 @@
         headers: { "Authorization": token }
       })
       .then(res => res.json())
-      .then(memories => {
+      .then(data => {
+        const memories = data.memories || data; // Handle both old and new format
         const container = document.getElementById("memoryContainer");
         container.innerHTML = "";
-        memories.forEach(memory => {
-          const card = document.createElement("div");
+        if (memories && memories.length > 0) {
+          memories.forEach(memory => {
+            const card = document.createElement("div");
           card.className = "memory-card";
 
           const image = document.createElement("img");
@@ -392,6 +394,9 @@
 
           container.appendChild(card);
         });
+        } else {
+          container.innerHTML = "<p>No memories found.</p>";
+        }
       })
       .catch(err => {
         document.getElementById("message").textContent = err.message;

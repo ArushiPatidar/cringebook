@@ -124,6 +124,76 @@
             margin-bottom: 10px;
         }
 
+        .memories-section {
+            margin-top: 30px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 2px solid #3f51b5;
+            padding-bottom: 10px;
+        }
+
+        .memories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .memory-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .memory-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .memory-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+
+        .memory-content {
+            padding: 15px;
+        }
+
+        .memory-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .memory-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .no-memories {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
         .back-btn {
             background-color: #666;
             color: white;
@@ -255,6 +325,12 @@
                             <div class="info-value">${escapeHtml(user.phone || 'Not provided')}</div>
                         </div>
                     </div>
+                    <div class="memories-section">
+                        <div class="section-title">📸 ${escapeHtml(user.name)}'s Memories</div>
+                        <div id="memoriesContainer">
+                            <div class="loading">Loading memories...</div>
+                        </div>
+                    </div>
                 `;
             } else {
                 profileInfo = `
@@ -277,6 +353,75 @@
                     ${profileInfo}
                 </div>
             `;
+
+            // If friends, load memories after the profile is displayed
+            if (areFriends) {
+                loadUserMemories();
+            }
+        }
+
+        async function loadUserMemories() {
+            const token = getTokenFromCookie();
+            
+            try {
+                const response = await fetch(`/show_memory?userId=${userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': token
+                    }
+                });
+
+                const memoriesContainer = document.getElementById('memoriesContainer');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayMemories(data.memories, data.isOwner);
+                } else {
+                    memoriesContainer.innerHTML = '<div class="error">Error loading memories</div>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                const memoriesContainer = document.getElementById('memoriesContainer');
+                memoriesContainer.innerHTML = '<div class="error">Error loading memories</div>';
+            }
+        }
+
+        function displayMemories(memories, isOwner) {
+            const memoriesContainer = document.getElementById('memoriesContainer');
+            
+            if (!memories || memories.length === 0) {
+                memoriesContainer.innerHTML = `
+                    <div class="no-memories">
+                        <h3>No memories yet</h3>
+                        <p>${escapeHtml(profileData.user.name)} hasn't shared any memories yet.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const memoriesHtml = memories.map(memory => `
+                <div class="memory-card" onclick="viewMemoryEpisodes(${memory.memoryId})">
+                    ${memory.photo ? 
+                        `<img src="/get_photo_from_url?url=${encodeURIComponent(memory.photo)}" alt="Memory photo" class="memory-image" onerror="this.style.display='none'">` : 
+                        '<div class="memory-image" style="display: flex; align-items: center; justify-content: center; background: #f0f0f0; color: #666;">📸 No Image</div>'
+                    }
+                    <div class="memory-content">
+                        <div class="memory-title">${escapeHtml(memory.title)}</div>
+                        <div class="memory-description">${escapeHtml(memory.description)}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            memoriesContainer.innerHTML = `
+                <div class="memories-grid">
+                    ${memoriesHtml}
+                </div>
+            `;
+        }
+
+        function viewMemoryEpisodes(memoryId) {
+            // Navigate to episodes page with the memory ID
+            window.location.href = `show_episodes.html?memory_id=${memoryId}`;
         }
 
         async function sendFriendRequest() {

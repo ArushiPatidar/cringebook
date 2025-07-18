@@ -213,7 +213,7 @@
     <span>📷 Episode Photos</span>
     <div>
         <button onclick="goBackToEpisodes()">🔙 Back to Episodes</button>
-        <button onclick="goToAddPhoto()">➕ Add Photo</button>
+        <button id="addPhotoBtn" onclick="goToAddPhoto()">➕ Add Photo</button>
     </div>
 </div>
 
@@ -277,9 +277,18 @@
         if (!res.ok) throw new Error("Failed to load photos");
         return res.json();
       })
-      .then(photos => {
+      .then(data => {
+        const photos = data.photos || data; // Handle both old and new format
+        const isOwner = data.isOwner !== undefined ? data.isOwner : true; // Default to owner for backward compatibility
+        
         const container = document.getElementById("photoContainer");
         container.innerHTML = "";
+
+        // Hide add button if not owner
+        const addButton = document.getElementById("addPhotoBtn");
+        if (addButton) {
+          addButton.style.display = isOwner ? "block" : "none";
+        }
 
         if (!photos || photos.length === 0) {
           document.getElementById("message").textContent = "No photos found.";

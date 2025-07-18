@@ -21,6 +21,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -47,7 +49,7 @@ public class AddPhoto {
         return friendship != null;
     }
     @GetMapping("/show_photos")
-    public ResponseEntity<List<Photo>> getPhoto(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer episodeId){
+    public ResponseEntity<Map<String, Object>> getPhoto(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer episodeId){
         System.out.println("episodeId " + episodeId );
         Integer requesterId = authentication.getIdFromToken(jwtToken);
         if (requesterId == 0) {
@@ -59,12 +61,19 @@ public class AddPhoto {
         System.out.println("requesterId " + requesterId );
         
         // Check access: owner can view own photos, friends can view friend's photos
-        boolean canAccess = requesterId.equals(episodeOwnerId) || areFriends(requesterId, episodeOwnerId);
+        boolean isOwner = requesterId.equals(episodeOwnerId);
+        boolean canAccess = isOwner || areFriends(requesterId, episodeOwnerId);
         
         if (canAccess) {
             try{
                 List<Photo> photos = photoRepo.findByEpisodeId(episodeId);
-                return new ResponseEntity<>(photos, HttpStatus.OK);
+                
+                // Return photos with metadata
+                Map<String, Object> response = new HashMap<>();
+                response.put("photos", photos);
+                response.put("isOwner", isOwner);
+                
+                return new ResponseEntity<>(response, HttpStatus.OK);
             } catch (Exception e) {
                 return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
             }

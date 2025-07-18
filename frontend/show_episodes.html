@@ -137,9 +137,18 @@
         if (!res.ok) throw new Error("Failed to fetch episodes.");
         return res.json();
       })
-      .then(episodes => {
+      .then(data => {
+        const episodes = data.episodes || data; // Handle both old and new format
+        const isOwner = data.isOwner !== undefined ? data.isOwner : true; // Default to owner for backward compatibility
+        
         const container = document.getElementById("episodeContainer");
         container.innerHTML = "";
+
+        // Hide add button if not owner
+        const addButton = document.getElementById("addEpisodeBtn");
+        if (addButton) {
+          addButton.style.display = isOwner ? "block" : "none";
+        }
 
         if (!episodes || episodes.length === 0) {
           document.getElementById("message").textContent = "No episodes found.";

@@ -15,6 +15,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,7 +47,7 @@ public class AddMemory {
     }
 
     @GetMapping("/show_memory")
-    public ResponseEntity<List<Memory>> getMemory(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer userId) {
+    public ResponseEntity<Map<String, Object>> getMemory(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer userId) {
         Integer requesterId = authentication.getIdFromToken(jwtToken);
         if (requesterId == 0) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
@@ -55,12 +57,19 @@ public class AddMemory {
         Integer targetUserId = (userId != null) ? userId : requesterId;
         
         // Check access: owner can view own memories, friends can view friend's memories
-        boolean canAccess = requesterId.equals(targetUserId) || areFriends(requesterId, targetUserId);
+        boolean isOwner = requesterId.equals(targetUserId);
+        boolean canAccess = isOwner || areFriends(requesterId, targetUserId);
         
         if (canAccess) {
             try{
                 List<Memory> memories = memoryRepo.findByUserId(targetUserId);
-                return new ResponseEntity<>(memories, HttpStatus.OK);
+                
+                // Return memories with metadata
+                Map<String, Object> response = new HashMap<>();
+                response.put("memories", memories);
+                response.put("isOwner", isOwner);
+                
+                return new ResponseEntity<>(response, HttpStatus.OK);
             }catch (Exception e){
                 return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
             }
