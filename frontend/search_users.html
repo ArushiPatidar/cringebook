@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Search Users</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .topbar {
+            background-color: #3f51b5;
+            color: white;
+            padding: 15px 20px;
+            font-size: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topbar .title {
+            font-weight: bold;
+        }
+
+        .search-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+        }
+
+        .user-info {
+            flex-grow: 1;
+        }
+
+        .user-name {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .user-details {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .view-profile-btn {
+            background-color: #3f51b5;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .view-profile-btn:hover {
+            background-color: #303f9f;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+
+        .back-btn {
+            background-color: #666;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="title">CringeBook - Search Users</div>
+        <div>
+            <a href="show_memory.html" class="back-btn">Back to Home</a>
+        </div>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="searchBox" class="search-box" placeholder="Search by name, username, or email...">
+        <div id="searchResults"></div>
+    </div>
+
+    <script>
+        let searchTimeout;
+        const searchBox = document.getElementById('searchBox');
+        const searchResults = document.getElementById('searchResults');
+
+        searchBox.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                searchResults.innerHTML = '';
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                searchUsers(query);
+            }, 300);
+        });
+
+        async function searchUsers(query) {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/users/search?query=${encodeURIComponent(query)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': token
+                    }
+                });
+
+                if (response.ok) {
+                    const users = await response.json();
+                    displaySearchResults(users);
+                } else if (response.status === 401) {
+                    window.location.href = 'login.html';
+                } else {
+                    searchResults.innerHTML = '<div class="no-results">Error searching users</div>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                searchResults.innerHTML = '<div class="no-results">Error searching users</div>';
+            }
+        }
+
+        function displaySearchResults(users) {
+            if (users.length === 0) {
+                searchResults.innerHTML = '<div class="no-results">No users found</div>';
+                return;
+            }
+
+            let html = '';
+            users.forEach(user => {
+                html += `
+                    <div class="user-card">
+                        <div class="user-info">
+                            <div class="user-name">${escapeHtml(user.name)}</div>
+                            <div class="user-details">
+                                @${escapeHtml(user.userName)} • ${escapeHtml(user.email)}
+                            </div>
+                        </div>
+                        <button class="view-profile-btn" onclick="viewProfile(${user.userID})">
+                            View Profile
+                        </button>
+                    </div>
+                `;
+            });
+            searchResults.innerHTML = html;
+        }
+
+        function viewProfile(userId) {
+            window.location.href = `user_profile.html?userId=${userId}`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

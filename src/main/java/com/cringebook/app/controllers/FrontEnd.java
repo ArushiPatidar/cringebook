@@ -35,7 +35,7 @@ public class FrontEnd {
 
     @GetMapping(value = "/frontend/{filename:.+}", produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<byte[]> getHtmlPage(@PathVariable String filename) throws IOException {
-        File file = new File("C:\\Users\\arushi\\Documents\\app\\app\\frontend\\" + filename);
+        File file = new File("frontend/" + filename);
         if (!file.exists()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }

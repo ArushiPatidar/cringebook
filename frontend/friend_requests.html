@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Friend Requests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .topbar {
+            background-color: #3f51b5;
+            color: white;
+            padding: 15px 20px;
+            font-size: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topbar .title {
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .requests-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #f5f5f5;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .request-card {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .request-card:last-child {
+            border-bottom: none;
+        }
+
+        .request-info {
+            flex-grow: 1;
+        }
+
+        .requester-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .requester-username {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .request-date {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .accept-btn {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .accept-btn:hover {
+            background-color: #45a049;
+        }
+
+        .decline-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .decline-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .view-profile-btn {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        .view-profile-btn:hover {
+            background-color: #1976d2;
+        }
+
+        .no-requests {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .back-btn {
+            background-color: #666;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .back-btn:hover {
+            background-color: #555;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .error {
+            text-align: center;
+            padding: 50px;
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="title">CringeBook - Friend Requests</div>
+        <div>
+            <a href="show_memory.html" class="back-btn">Back to Home</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="requests-container">
+            <div class="section-header">
+                <h2 class="section-title">Pending Friend Requests</h2>
+            </div>
+            <div id="loadingMessage" class="loading">Loading requests...</div>
+            <div id="errorMessage" class="error" style="display: none;">Error loading requests</div>
+            <div id="requestsList"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFriendRequests();
+        });
+
+        async function loadFriendRequests() {
+            const token = localStorage.getItem('jwtToken');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/friends/requests', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': token
+                    }
+                });
+
+                if (response.ok) {
+                    const requests = await response.json();
+                    displayRequests(requests);
+                } else if (response.status === 401) {
+                    window.location.href = 'login.html';
+                } else {
+                    showError('Error loading friend requests');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error loading friend requests');
+            }
+        }
+
+        function displayRequests(requests) {
+            const loadingMessage = document.getElementById('loadingMessage');
+            const requestsList = document.getElementById('requestsList');
+            
+            loadingMessage.style.display = 'none';
+
+            if (requests.length === 0) {
+                requestsList.innerHTML = '<div class="no-requests">No pending friend requests</div>';
+                return;
+            }
+
+            let html = '';
+            requests.forEach(request => {
+                const createdDate = new Date(request.createdAt).toLocaleDateString();
+                html += `
+                    <div class="request-card">
+                        <div class="request-info">
+                            <div class="requester-name">${escapeHtml(request.requester.name)}</div>
+                            <div class="requester-username">@${escapeHtml(request.requester.userName)}</div>
+                            <div class="request-date">Sent on ${createdDate}</div>
+                        </div>
+                        <div class="request-actions">
+                            <button class="action-btn view-profile-btn" onclick="viewProfile(${request.requester.userID})">
+                                View Profile
+                            </button>
+                            <button class="action-btn accept-btn" onclick="acceptRequest(${request.requestId})">
+                                Accept
+                            </button>
+                            <button class="action-btn decline-btn" onclick="declineRequest(${request.requestId})">
+                                Decline
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            requestsList.innerHTML = html;
+        }
+
+        async function acceptRequest(requestId) {
+            const token = localStorage.getItem('jwtToken');
+            
+            try {
+                const response = await fetch('/api/friends/accept', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Authorization': token
+                    },
+                    body: `requestId=${requestId}`
+                });
+
+                if (response.ok) {
+                    alert('Friend request accepted!');
+                    loadFriendRequests(); // Reload the list
+                } else {
+                    const error = await response.text();
+                    alert('Error: ' + error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error accepting friend request');
+            }
+        }
+
+        async function declineRequest(requestId) {
+            // For now, we'll just remove it from the display
+            // In a full implementation, you'd want a decline API endpoint
+            if (confirm('Are you sure you want to decline this friend request?')) {
+                // Since we don't have a decline endpoint, we'll just reload
+                // In a real app, you'd call a decline API
+                alert('Feature coming soon: decline requests');
+            }
+        }
+
+        function viewProfile(userId) {
+            window.location.href = `user_profile.html?userId=${userId}`;
+        }
+
+        function showError(message) {
+            document.getElementById('loadingMessage').style.display = 'none';
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
