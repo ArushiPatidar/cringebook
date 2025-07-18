@@ -256,7 +256,7 @@
     }
 
     function photoUrl(filename) {
-      return `http://${window.location.host}/get_photo_from_url?url=${encodeURIComponent(filename)}`;
+      return `/get_photo_from_url?url=${encodeURIComponent(filename)}`;
     }
 
     function fetchPhotos() {
@@ -268,7 +268,7 @@
         return;
       }
 
-      fetch(`http://${window.location.host}/show_photos?episodeId=${episodeId}`, {
+      fetch(`/show_photos?episodeId=${episodeId}`, {
         headers: {
           "Authorization": token
         }
@@ -340,14 +340,14 @@
     function goBackToEpisodes() {
       const memoryId = sessionStorage.getItem("currentMemoryId");
       if (memoryId) {
-        window.location.href = `/frontend/show_episodes.html?memoryId=${memoryId}`;
+        window.location.href = `show_episodes.html?memoryId=${memoryId}`;
       }
     }
 
     function goToAddPhoto() {
       const episodeId = getQueryParam("episodeId");
       if (episodeId) {
-        window.location.href = `/frontend/add_photo.html?episodeId=${episodeId}`;
+        window.location.href = `add_photo.html?episodeId=${episodeId}`;
       }
     }
 

@@ -127,7 +127,7 @@
         return;
       }
 
-      fetch(`http://${window.location.host}/show episodes?memoryId=${memoryId}`, {
+      fetch(`/show_episodes?memoryId=${memoryId}`, {
         method: "GET",
         headers: {
           "Authorization": token
@@ -160,7 +160,7 @@
           card.className = "episode-card";
 
           const image = document.createElement("img");
-          image.src = `http://${window.location.host}/get_photo_from_url?url=${encodeURIComponent(episode.photo)}`;
+          image.src = `/get_photo_from_url?url=${encodeURIComponent(episode.photo)}`;
           image.alt = episode.title || "Episode photo";
 
           const content = document.createElement("div");
@@ -184,7 +184,7 @@
         card.onclick = () => {
           // Optional: Store memoryId to support "Back" from photo view
           sessionStorage.setItem("currentMemoryId", memoryId);
-          window.location.href = `/frontend/show_photos.html?episodeId=${episode.episodeId}`;
+          window.location.href = `show_photos.html?episodeId=${episode.episodeId}`;
         };
 
         container.appendChild(card);
@@ -200,11 +200,11 @@
     document.getElementById("addEpisodeBtn").onclick = () => {
       const memoryId = new URLSearchParams(window.location.search).get("memoryId");
       if (memoryId) {
-        window.location.href = `/frontend/add_episode.html?memoryId=${memoryId}`;
+        window.location.href = `add_episode.html?memoryId=${memoryId}`;
       }
     };
     document.getElementById("backToMemoryBtn").onclick = () => {
-      window.location.href = "/frontend/show_memory.html";
+      window.location.href = "show_memory.html";
     };
 
 </script>
