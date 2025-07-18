@@ -479,6 +479,7 @@
                 actionButtons = `
                     <button class="md-button md-button-success"><span class="material-icons">check</span>Friends</button>
                     <button class="md-button md-button-filled" onclick="startMessage()"><span class="material-icons">message</span>Send Message</button>
+                    <button class="md-button md-button-filled" onclick="startVideoCall()"><span class="material-icons">videocam</span>Video Call</button>
                 `;
             } else if (hasPendingRequest) {
                 actionButtons = '<button class="md-button md-button-warning"><span class="material-icons">schedule</span>Request Pending</button>';
@@ -649,6 +650,16 @@
 
         function startMessage() {
             window.location.href = 'messages.html?friendId=' + currentUserId;
+        }
+
+        function startVideoCall() {
+            if (!currentUserId) {
+                alert('User information not available');
+                return;
+            }
+            
+            const userName = document.querySelector('.profile-name').textContent;
+            window.open(`video_call.html?friendId=${currentUserId}&friendName=${encodeURIComponent(userName)}`, '_blank');
         }
 
         function escapeHtml(text) {

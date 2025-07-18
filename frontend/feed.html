@@ -564,7 +564,7 @@
                 const commentDiv = document.createElement('div');
                 commentDiv.style.cssText = 'margin-bottom: 8px; padding: 8px; background: var(--md-surface-variant); border-radius: 8px;';
                 commentDiv.innerHTML = `
-                    <div style="font-weight: 500; font-size: 14px; margin-bottom: 4px;">User</div>
+                    <div style="font-weight: 500; font-size: 14px; margin-bottom: 4px;">${escapeHtml(comment.userFullName || comment.userName || 'Unknown User')}</div>
                     <div style="font-size: 14px;">${escapeHtml(comment.commentText)}</div>
                 `;
                 commentsList.appendChild(commentDiv);

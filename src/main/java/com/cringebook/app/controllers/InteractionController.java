@@ -148,8 +148,30 @@ public class InteractionController {
             List<Comment> comments = commentRepo.findCommentsForTarget(targetType, targetId);
             Integer commentCount = commentRepo.countCommentsForTarget(targetType, targetId);
             
+            // Enhance comments with user information
+            List<Map<String, Object>> enrichedComments = new java.util.ArrayList<>();
+            for (Comment comment : comments) {
+                Map<String, Object> enrichedComment = new HashMap<>();
+                enrichedComment.put("commentId", comment.getCommentId());
+                enrichedComment.put("userId", comment.getUserId());
+                enrichedComment.put("commentText", comment.getCommentText());
+                enrichedComment.put("createdAt", comment.getCreatedAt());
+                
+                // Add user information
+                var user = userRepo.findByUserId(comment.getUserId());
+                if (user != null) {
+                    enrichedComment.put("userName", user.getUserName());
+                    enrichedComment.put("userFullName", user.getName());
+                } else {
+                    enrichedComment.put("userName", "unknown");
+                    enrichedComment.put("userFullName", "Unknown User");
+                }
+                
+                enrichedComments.add(enrichedComment);
+            }
+            
             Map<String, Object> response = new HashMap<>();
-            response.put("comments", comments);
+            response.put("comments", enrichedComments);
             response.put("commentCount", commentCount);
             
             return new ResponseEntity<>(response, HttpStatus.OK);
