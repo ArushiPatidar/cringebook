@@ -562,6 +562,9 @@
         
         // Load chat
         loadChat(friendId);
+        
+        // Start real-time polling for this conversation
+        startConversationPolling(friendId);
     }
 
     function loadChat(friendId) {
@@ -593,6 +596,7 @@
             
             // Display messages
             displayMessages(messages);
+            lastMessageCount = messages.length;
             
             // Refresh conversations to update unread counts
             loadConversations();
@@ -714,6 +718,52 @@
 
     // Auto-refresh conversations every 30 seconds
     setInterval(loadConversations, 30000);
+    
+    // Real-time messaging for active conversation
+    let conversationPollingInterval;
+    let lastMessageCount = 0;
+    
+    function startConversationPolling(friendId) {
+        stopConversationPolling();
+        conversationPollingInterval = setInterval(() => {
+            if (currentChatFriendId === friendId) {
+                refreshCurrentConversation(friendId);
+            }
+        }, 5000); // Poll every 5 seconds when chat is open
+    }
+    
+    function stopConversationPolling() {
+        if (conversationPollingInterval) {
+            clearInterval(conversationPollingInterval);
+            conversationPollingInterval = null;
+        }
+    }
+    
+    function refreshCurrentConversation(friendId) {
+        const token = getTokenFromCookie();
+        if (!token) return;
+        
+        fetch(`/api/messages/conversation/${friendId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': token
+            }
+        })
+        .then(res => {
+            if (!res.ok) return;
+            return res.json();
+        })
+        .then(data => {
+            const messages = data.messages || [];
+            if (messages.length !== lastMessageCount) {
+                displayMessages(messages);
+                lastMessageCount = messages.length;
+                // Also refresh conversation list to update unread counts
+                loadConversations();
+            }
+        })
+        .catch(err => console.error('Error refreshing conversation:', err));
+    }
 
     window.onload = loadCurrentUserId;
 </script>

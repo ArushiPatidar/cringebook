@@ -158,6 +158,122 @@
           line-height: 1.4;
         }
 
+        .interaction-section {
+          border-top: 1px solid var(--md-outline-variant);
+          margin-top: 16px;
+        }
+
+        .interaction-bar {
+          display: flex;
+          gap: 8px;
+          padding: 12px 0;
+        }
+
+        .interaction-btn {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 8px 12px;
+          border: 1px solid var(--md-outline);
+          border-radius: var(--md-border-radius-small);
+          background: transparent;
+          color: var(--md-on-surface);
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .interaction-btn:hover {
+          background-color: var(--md-surface-variant);
+        }
+
+        .interaction-btn.liked {
+          color: var(--md-error);
+          border-color: var(--md-error);
+        }
+
+        .interaction-btn.liked .material-icons {
+          color: var(--md-error);
+        }
+
+        .interaction-btn .material-icons {
+          font-size: 18px;
+        }
+
+        .comments-section {
+          margin-top: 12px;
+          padding-top: 12px;
+          border-top: 1px solid var(--md-outline-variant);
+        }
+
+        .comment-input-area {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 16px;
+        }
+
+        .comment-input {
+          flex: 1;
+          padding: 8px 12px;
+          border: 1px solid var(--md-outline);
+          border-radius: var(--md-border-radius-small);
+          font-family: inherit;
+          font-size: 14px;
+        }
+
+        .comment-submit {
+          padding: 8px 16px;
+          background-color: var(--md-primary);
+          color: var(--md-on-primary);
+          border: none;
+          border-radius: var(--md-border-radius-small);
+          cursor: pointer;
+        }
+
+        .comment-item {
+          padding: 8px 0;
+          border-bottom: 1px solid var(--md-outline-variant);
+        }
+
+        .comment-item:last-child {
+          border-bottom: none;
+        }
+
+        .comment-author {
+          font-weight: 500;
+          font-size: 14px;
+          margin-bottom: 4px;
+        }
+
+        .comment-text {
+          font-size: 14px;
+          color: var(--md-on-surface);
+          margin-bottom: 8px;
+        }
+
+        .comment-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 12px;
+          color: #666;
+        }
+
+        .comment-like-btn {
+          background: none;
+          border: none;
+          color: #666;
+          cursor: pointer;
+          font-size: 12px;
+          display: flex;
+          align-items: center;
+          gap: 2px;
+        }
+
+        .comment-like-btn.liked {
+          color: var(--md-error);
+        }
+
         .message {
           text-align: center;
           padding: 48px 24px;
@@ -296,16 +412,53 @@
 
           content.appendChild(title);
           content.appendChild(description);
-          card.appendChild(image);
-          card.appendChild(content);
-
-          // ✅ Add click handler to open show_photos.html
-          card.style.cursor = "pointer";
-          card.onclick = () => {
-            // Optional: Store memoryId to support "Back" from photo view
+          
+          // Add interaction section for likes and comments
+          const interactionSection = document.createElement("div");
+          interactionSection.className = "interaction-section";
+          
+          const interactionBar = document.createElement("div");
+          interactionBar.className = "interaction-bar";
+          
+          // Like button
+          const likeBtn = document.createElement("button");
+          likeBtn.className = "interaction-btn like-btn";
+          likeBtn.innerHTML = `<span class="material-icons">favorite_border</span><span class="like-count">0</span>`;
+          likeBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleLike('episode', episode.episodeId, likeBtn);
+          };
+          
+          // Comment button
+          const commentBtn = document.createElement("button");
+          commentBtn.className = "interaction-btn comment-btn";
+          commentBtn.innerHTML = `<span class="material-icons">comment</span><span class="comment-count">0</span>`;
+          commentBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleComments('episode', episode.episodeId, interactionSection);
+          };
+          
+          // Open episode button
+          const openBtn = document.createElement("button");
+          openBtn.className = "interaction-btn open-btn";
+          openBtn.innerHTML = `<span class="material-icons">open_in_new</span>Open`;
+          openBtn.onclick = (e) => {
+            e.stopPropagation();
             sessionStorage.setItem("currentMemoryId", memoryId);
             window.location.href = `show_photos.html?episodeId=${episode.episodeId}`;
           };
+          
+          interactionBar.appendChild(likeBtn);
+          interactionBar.appendChild(commentBtn);
+          interactionBar.appendChild(openBtn);
+          interactionSection.appendChild(interactionBar);
+          
+          content.appendChild(interactionSection);
+          card.appendChild(image);
+          card.appendChild(content);
+
+          // Load initial like/comment counts
+          loadInteractionData('episode', episode.episodeId, likeBtn, commentBtn);
 
           container.appendChild(card);
         });
@@ -325,6 +478,283 @@
       `;
       messageEl.className = `message ${type === "error" ? "error-message" : ""}`;
       messageEl.style.display = "block";
+    }
+
+    // Interaction functions for likes and comments
+    function loadInteractionData(targetType, targetId, likeBtn, commentBtn) {
+      const token = getTokenFromCookie();
+      if (!token) return;
+
+      // Load likes
+      fetch(`/likes?targetType=${targetType}&targetId=${targetId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('.like-count');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.userLiked) {
+          likeBtn.classList.add('liked');
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.classList.remove('liked');
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error loading likes:', err));
+
+      // Load comments count
+      fetch(`/comments?targetType=${targetType}&targetId=${targetId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = commentBtn.querySelector('.comment-count');
+        countSpan.textContent = data.commentCount || 0;
+      })
+      .catch(err => console.error('Error loading comments:', err));
+    }
+
+    function toggleLike(targetType, targetId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/like', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=${targetType}&targetId=${targetId}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('.like-count');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.liked) {
+          likeBtn.classList.add('liked');
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.classList.remove('liked');
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error toggling like:', err));
+    }
+
+    function toggleComments(targetType, targetId, interactionSection) {
+      const existingCommentsSection = interactionSection.querySelector('.comments-section');
+      
+      if (existingCommentsSection) {
+        existingCommentsSection.remove();
+        return;
+      }
+
+      loadComments(targetType, targetId, interactionSection);
+    }
+
+    function loadComments(targetType, targetId, interactionSection) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch(`/comments?targetType=${targetType}&targetId=${targetId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const commentsSection = document.createElement('div');
+        commentsSection.className = 'comments-section';
+        
+        // Add comment input area
+        const inputArea = document.createElement('div');
+        inputArea.className = 'comment-input-area';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'comment-input';
+        input.placeholder = 'Add a comment...';
+        
+        const submitBtn = document.createElement('button');
+        submitBtn.className = 'comment-submit';
+        submitBtn.textContent = 'Post';
+        submitBtn.onclick = () => {
+          if (input.value.trim()) {
+            postComment(targetType, targetId, input.value.trim(), interactionSection);
+            input.value = '';
+          }
+        };
+        
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter' && input.value.trim()) {
+            postComment(targetType, targetId, input.value.trim(), interactionSection);
+            input.value = '';
+          }
+        });
+        
+        inputArea.appendChild(input);
+        inputArea.appendChild(submitBtn);
+        commentsSection.appendChild(inputArea);
+        
+        // Add existing comments
+        const comments = data.comments || [];
+        comments.forEach(comment => {
+          const commentDiv = createCommentElement(comment);
+          commentsSection.appendChild(commentDiv);
+        });
+        
+        interactionSection.appendChild(commentsSection);
+      })
+      .catch(err => console.error('Error loading comments:', err));
+    }
+
+    function createCommentElement(comment) {
+      const commentDiv = document.createElement('div');
+      commentDiv.className = 'comment-item';
+      
+      const author = document.createElement('div');
+      author.className = 'comment-author';
+      author.textContent = comment.userFullName || 'Unknown User';
+      
+      const text = document.createElement('div');
+      text.className = 'comment-text';
+      text.textContent = comment.commentText;
+      
+      const actions = document.createElement('div');
+      actions.className = 'comment-actions';
+      
+      const likeBtn = document.createElement('button');
+      likeBtn.className = 'comment-like-btn';
+      likeBtn.innerHTML = `<span class="material-icons">favorite_border</span><span>0</span>`;
+      likeBtn.onclick = () => toggleCommentLike(comment.commentId, likeBtn);
+      
+      const timeSpan = document.createElement('span');
+      timeSpan.textContent = formatTime(comment.createdAt);
+      
+      actions.appendChild(likeBtn);
+      actions.appendChild(timeSpan);
+      
+      commentDiv.appendChild(author);
+      commentDiv.appendChild(text);
+      commentDiv.appendChild(actions);
+      
+      // Load comment likes
+      loadCommentLikes(comment.commentId, likeBtn);
+      
+      return commentDiv;
+    }
+
+    function postComment(targetType, targetId, commentText, interactionSection) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/comment', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=${targetType}&targetId=${targetId}&commentText=${encodeURIComponent(commentText)}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        // Reload comments
+        const commentsSection = interactionSection.querySelector('.comments-section');
+        if (commentsSection) {
+          commentsSection.remove();
+        }
+        loadComments(targetType, targetId, interactionSection);
+        
+        // Update comment count
+        const commentBtn = interactionSection.querySelector('.comment-btn .comment-count');
+        if (commentBtn) {
+          commentBtn.textContent = parseInt(commentBtn.textContent) + 1;
+        }
+      })
+      .catch(err => console.error('Error posting comment:', err));
+    }
+
+    function toggleCommentLike(commentId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/like', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=comment&targetId=${commentId}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('span:last-child');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.liked) {
+          likeBtn.classList.add('liked');
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.classList.remove('liked');
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error toggling comment like:', err));
+    }
+
+    function loadCommentLikes(commentId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) return;
+
+      fetch(`/likes?targetType=comment&targetId=${commentId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('span:last-child');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.userLiked) {
+          likeBtn.classList.add('liked');
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.classList.remove('liked');
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error loading comment likes:', err));
+    }
+
+    function formatTime(timestamp) {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+      
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      return date.toLocaleDateString();
     }
 
     window.onload = fetchEpisodes;

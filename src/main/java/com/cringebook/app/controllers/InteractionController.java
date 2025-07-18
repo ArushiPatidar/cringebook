@@ -7,6 +7,9 @@ import com.cringebook.app.repository.CommentRepo;
 import com.cringebook.app.repository.LikeRepo;
 import com.cringebook.app.repository.FriendshipRepo;
 import com.cringebook.app.repository.UserRepo;
+import com.cringebook.app.repository.MemoryRepo;
+import com.cringebook.app.repository.EpisodeRepo;
+import com.cringebook.app.repository.PhotoRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -32,6 +35,15 @@ public class InteractionController {
     @Autowired
     private UserRepo userRepo;
 
+    @Autowired
+    private MemoryRepo memoryRepo;
+
+    @Autowired
+    private EpisodeRepo episodeRepo;
+
+    @Autowired
+    private PhotoRepo photoRepo;
+
     Authentication authentication = new Authentication();
 
     // Helper method to check if two users are friends
@@ -41,6 +53,38 @@ public class InteractionController {
         }
         Friendship friendship = friendshipRepo.findFriendshipBetweenUsers(userId1, userId2);
         return friendship != null;
+    }
+
+    // Helper method to get content owner ID based on target type and ID
+    private Integer getContentOwnerId(String targetType, Integer targetId) {
+        try {
+            switch (targetType.toLowerCase()) {
+                case "memory":
+                    var memory = memoryRepo.findById(targetId).orElse(null);
+                    return memory != null ? memory.getUserId() : null;
+                case "episode":
+                    // Use the existing method to get user ID from episode
+                    return episodeRepo.getUserIdFromEpisodeId(targetId);
+                case "photo":
+                    var photo = photoRepo.findById(targetId).orElse(null);
+                    if (photo != null) {
+                        // Get user ID from the episode that contains this photo
+                        return photoRepo.getUserIdForEpisodeId(photo.getEpisodeId());
+                    }
+                    return null;
+                case "comment":
+                    var comment = commentRepo.findById(targetId).orElse(null);
+                    if (comment != null) {
+                        // For comment likes, get the content owner of the original content
+                        return getContentOwnerId(comment.getTargetType(), comment.getTargetId());
+                    }
+                    return null;
+                default:
+                    return null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @PostMapping("/like")
@@ -119,8 +163,24 @@ public class InteractionController {
         }
 
         try {
-            // TODO: Add friendship check for commenting - only friends can comment
-            // For now, allowing all authenticated users to comment
+            // Check friendship requirement for commenting
+            // Need to get the content owner to check if they're friends
+            Integer contentOwnerId = getContentOwnerId(targetType, targetId);
+            if (contentOwnerId == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Content not found");
+                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            }
+            
+            // If user is trying to comment on their own content, allow it
+            if (!userId.equals(contentOwnerId)) {
+                // Check if users are friends
+                if (!areFriends(userId, contentOwnerId)) {
+                    Map<String, Object> errorResponse = new HashMap<>();
+                    errorResponse.put("error", "You can only comment on friends' content");
+                    return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+                }
+            }
             
             Comment newComment = new Comment(userId, targetType, targetId, commentText.trim());
             Comment savedComment = commentRepo.save(newComment);
@@ -131,7 +191,9 @@ public class InteractionController {
             
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to add comment");
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

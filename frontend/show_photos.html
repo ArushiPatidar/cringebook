@@ -124,14 +124,63 @@
           height: 240px;
           object-fit: cover;
           border-radius: var(--md-border-radius-medium);
-          box-shadow: var(--md-elevation-1);
           cursor: pointer;
           transition: all 0.2s ease;
         }
 
-        .photo-thumb:hover {
+        .photo-card {
+          background: var(--md-surface);
+          border-radius: var(--md-border-radius-medium);
+          box-shadow: var(--md-elevation-1);
+          overflow: hidden;
+          transition: all 0.2s ease;
+        }
+
+        .photo-card:hover {
           transform: translateY(-2px);
           box-shadow: var(--md-elevation-2);
+        }
+
+        .photo-interaction {
+          padding: 12px 16px;
+          border-top: 1px solid var(--md-outline-variant);
+        }
+
+        .interaction-bar {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .interaction-btn {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 6px 10px;
+          border: 1px solid var(--md-outline);
+          border-radius: var(--md-border-radius-small);
+          background: transparent;
+          color: var(--md-on-surface);
+          font-size: 12px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .interaction-btn:hover {
+          background-color: var(--md-surface-variant);
+        }
+
+        .interaction-btn.liked {
+          color: var(--md-error);
+          border-color: var(--md-error);
+        }
+
+        .interaction-btn.liked .material-icons {
+          color: var(--md-error);
+        }
+
+        .interaction-btn .material-icons {
+          font-size: 16px;
         }
 
         .message {
@@ -395,13 +444,62 @@
         photos.forEach((photo, index) => {
           photoList.push(photo);
 
+          // Create photo card container
+          const photoCard = document.createElement("div");
+          photoCard.className = "photo-card";
+
           const img = document.createElement("img");
           img.className = "photo-thumb";
           img.src = photoUrl(photo.photoUrl);  // this is the `photo_url`
           img.alt = "Episode Photo";
           img.onclick = () => openLightbox(index);
 
-          container.appendChild(img);
+          // Create interaction section
+          const interactionDiv = document.createElement("div");
+          interactionDiv.className = "photo-interaction";
+          
+          const interactionBar = document.createElement("div");
+          interactionBar.className = "interaction-bar";
+          
+          // Like button
+          const likeBtn = document.createElement("button");
+          likeBtn.className = "interaction-btn like-btn";
+          likeBtn.innerHTML = `<span class="material-icons">favorite_border</span><span class="like-count">0</span>`;
+          likeBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleLike('photo', photo.photoId, likeBtn);
+          };
+          
+          // Comment button
+          const commentBtn = document.createElement("button");
+          commentBtn.className = "interaction-btn comment-btn";
+          commentBtn.innerHTML = `<span class="material-icons">comment</span><span class="comment-count">0</span>`;
+          commentBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleComments('photo', photo.photoId, interactionDiv);
+          };
+          
+          // View button
+          const viewBtn = document.createElement("button");
+          viewBtn.className = "interaction-btn view-btn";
+          viewBtn.innerHTML = `<span class="material-icons">fullscreen</span>View`;
+          viewBtn.onclick = (e) => {
+            e.stopPropagation();
+            openLightbox(index);
+          };
+          
+          interactionBar.appendChild(likeBtn);
+          interactionBar.appendChild(commentBtn);
+          interactionBar.appendChild(viewBtn);
+          interactionDiv.appendChild(interactionBar);
+          
+          photoCard.appendChild(img);
+          photoCard.appendChild(interactionDiv);
+          
+          // Load initial like/comment counts
+          loadInteractionData('photo', photo.photoId, likeBtn, commentBtn);
+
+          container.appendChild(photoCard);
         });
       })
       .catch(err => {
@@ -458,6 +556,312 @@
       if (episodeId) {
         window.location.href = `add_photo.html?episodeId=${episodeId}`;
       }
+    }
+
+    // Interaction functions for likes and comments (copied from episodes page)
+    function loadInteractionData(targetType, targetId, likeBtn, commentBtn) {
+      const token = getTokenFromCookie();
+      if (!token) return;
+
+      // Load likes
+      fetch(`/likes?targetType=${targetType}&targetId=${targetId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('.like-count');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.userLiked) {
+          likeBtn.classList.add('liked');
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.classList.remove('liked');
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error loading likes:', err));
+
+      // Load comments count
+      fetch(`/comments?targetType=${targetType}&targetId=${targetId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = commentBtn.querySelector('.comment-count');
+        countSpan.textContent = data.commentCount || 0;
+      })
+      .catch(err => console.error('Error loading comments:', err));
+    }
+
+    function toggleLike(targetType, targetId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/like', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=${targetType}&targetId=${targetId}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('.like-count');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.liked) {
+          likeBtn.classList.add('liked');
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.classList.remove('liked');
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error toggling like:', err));
+    }
+
+    function toggleComments(targetType, targetId, photoInteractionDiv) {
+      const existingCommentsSection = photoInteractionDiv.querySelector('.comments-section');
+      
+      if (existingCommentsSection) {
+        existingCommentsSection.remove();
+        return;
+      }
+
+      loadComments(targetType, targetId, photoInteractionDiv);
+    }
+
+    function loadComments(targetType, targetId, photoInteractionDiv) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch(`/comments?targetType=${targetType}&targetId=${targetId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const commentsSection = document.createElement('div');
+        commentsSection.className = 'comments-section';
+        commentsSection.style.marginTop = '12px';
+        commentsSection.style.paddingTop = '12px';
+        commentsSection.style.borderTop = '1px solid var(--md-outline-variant)';
+        
+        // Add comment input area
+        const inputArea = document.createElement('div');
+        inputArea.style.display = 'flex';
+        inputArea.style.gap = '8px';
+        inputArea.style.marginBottom = '12px';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'Add a comment...';
+        input.style.flex = '1';
+        input.style.padding = '6px 8px';
+        input.style.border = '1px solid var(--md-outline)';
+        input.style.borderRadius = 'var(--md-border-radius-small)';
+        input.style.fontSize = '12px';
+        
+        const submitBtn = document.createElement('button');
+        submitBtn.textContent = 'Post';
+        submitBtn.style.padding = '6px 12px';
+        submitBtn.style.backgroundColor = 'var(--md-primary)';
+        submitBtn.style.color = 'var(--md-on-primary)';
+        submitBtn.style.border = 'none';
+        submitBtn.style.borderRadius = 'var(--md-border-radius-small)';
+        submitBtn.style.cursor = 'pointer';
+        submitBtn.style.fontSize = '12px';
+        submitBtn.onclick = () => {
+          if (input.value.trim()) {
+            postComment(targetType, targetId, input.value.trim(), photoInteractionDiv);
+            input.value = '';
+          }
+        };
+        
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter' && input.value.trim()) {
+            postComment(targetType, targetId, input.value.trim(), photoInteractionDiv);
+            input.value = '';
+          }
+        });
+        
+        inputArea.appendChild(input);
+        inputArea.appendChild(submitBtn);
+        commentsSection.appendChild(inputArea);
+        
+        // Add existing comments
+        const comments = data.comments || [];
+        comments.forEach(comment => {
+          const commentDiv = createCommentElement(comment);
+          commentsSection.appendChild(commentDiv);
+        });
+        
+        photoInteractionDiv.appendChild(commentsSection);
+      })
+      .catch(err => console.error('Error loading comments:', err));
+    }
+
+    function createCommentElement(comment) {
+      const commentDiv = document.createElement('div');
+      commentDiv.style.padding = '6px 0';
+      commentDiv.style.borderBottom = '1px solid var(--md-outline-variant)';
+      commentDiv.style.fontSize = '12px';
+      
+      const author = document.createElement('div');
+      author.style.fontWeight = '500';
+      author.style.marginBottom = '2px';
+      author.textContent = comment.userFullName || 'Unknown User';
+      
+      const text = document.createElement('div');
+      text.style.marginBottom = '4px';
+      text.textContent = comment.commentText;
+      
+      const actions = document.createElement('div');
+      actions.style.display = 'flex';
+      actions.style.alignItems = 'center';
+      actions.style.gap = '8px';
+      actions.style.fontSize = '11px';
+      actions.style.color = '#666';
+      
+      const likeBtn = document.createElement('button');
+      likeBtn.style.background = 'none';
+      likeBtn.style.border = 'none';
+      likeBtn.style.color = '#666';
+      likeBtn.style.cursor = 'pointer';
+      likeBtn.style.fontSize = '11px';
+      likeBtn.style.display = 'flex';
+      likeBtn.style.alignItems = 'center';
+      likeBtn.style.gap = '2px';
+      likeBtn.innerHTML = `<span class="material-icons" style="font-size: 14px;">favorite_border</span><span>0</span>`;
+      likeBtn.onclick = () => toggleCommentLike(comment.commentId, likeBtn);
+      
+      const timeSpan = document.createElement('span');
+      timeSpan.textContent = formatTime(comment.createdAt);
+      
+      actions.appendChild(likeBtn);
+      actions.appendChild(timeSpan);
+      
+      commentDiv.appendChild(author);
+      commentDiv.appendChild(text);
+      commentDiv.appendChild(actions);
+      
+      // Load comment likes
+      loadCommentLikes(comment.commentId, likeBtn);
+      
+      return commentDiv;
+    }
+
+    function postComment(targetType, targetId, commentText, photoInteractionDiv) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/comment', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=${targetType}&targetId=${targetId}&commentText=${encodeURIComponent(commentText)}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        // Reload comments
+        const commentsSection = photoInteractionDiv.querySelector('.comments-section');
+        if (commentsSection) {
+          commentsSection.remove();
+        }
+        loadComments(targetType, targetId, photoInteractionDiv);
+        
+        // Update comment count
+        const commentBtn = photoInteractionDiv.querySelector('.comment-btn .comment-count');
+        if (commentBtn) {
+          commentBtn.textContent = parseInt(commentBtn.textContent) + 1;
+        }
+      })
+      .catch(err => console.error('Error posting comment:', err));
+    }
+
+    function toggleCommentLike(commentId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/like', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=comment&targetId=${commentId}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('span:last-child');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.liked) {
+          likeBtn.style.color = 'var(--md-error)';
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.style.color = '#666';
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error toggling comment like:', err));
+    }
+
+    function loadCommentLikes(commentId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) return;
+
+      fetch(`/likes?targetType=comment&targetId=${commentId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('span:last-child');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.userLiked) {
+          likeBtn.style.color = 'var(--md-error)';
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.style.color = '#666';
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error loading comment likes:', err));
+    }
+
+    function formatTime(timestamp) {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+      
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      return date.toLocaleDateString();
     }
 
     window.onload = fetchPhotos;
