@@ -89,6 +89,21 @@ public class UserController {
         }
     }
 
+    @GetMapping("/current-user-id")
+    public ResponseEntity<Map<String, Object>> getCurrentUserId(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken) {
+        
+        Integer currentUserId = authService.getIdFromToken(jwtToken);
+        if (currentUserId == 0) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("userId", currentUserId);
+        
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
     @GetMapping("/profile")
     public ResponseEntity<Map<String, Object>> getCurrentUserProfile(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken) {

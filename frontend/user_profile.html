@@ -476,7 +476,10 @@
 
             let actionButtons = '';
             if (areFriends) {
-                actionButtons = '<button class="md-button md-button-success"><span class="material-icons">check</span>Friends</button>';
+                actionButtons = `
+                    <button class="md-button md-button-success"><span class="material-icons">check</span>Friends</button>
+                    <button class="md-button md-button-filled" onclick="startMessage()"><span class="material-icons">message</span>Send Message</button>
+                `;
             } else if (hasPendingRequest) {
                 actionButtons = '<button class="md-button md-button-warning"><span class="material-icons">schedule</span>Request Pending</button>';
             } else if (canSendRequest) {
@@ -642,6 +645,10 @@
             const errorMessage = document.getElementById('errorMessage');
             document.getElementById('errorText').textContent = message;
             errorMessage.style.display = 'block';
+        }
+
+        function startMessage() {
+            window.location.href = 'messages.html?friendId=' + currentUserId;
         }
 
         function escapeHtml(text) {
