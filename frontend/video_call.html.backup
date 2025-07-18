@@ -291,14 +291,11 @@
     let callDurationInterval = null;
     let friendId = null;
     let friendName = null;
-    let websocket = null;
-    let currentUserId = null;
 
     // Get friend info from URL params
     const urlParams = new URLSearchParams(window.location.search);
     friendId = urlParams.get('friendId');
     friendName = urlParams.get('friendName') || 'Friend';
-    isInitiator = urlParams.get('initiator') === 'true';
 
     // WebRTC configuration
     const configuration = {
@@ -313,29 +310,8 @@
         return match ? decodeURIComponent(match[2]) : null;
     }
 
-    function getCurrentUserId() {
-        const token = getTokenFromCookie();
-        if (!token) return null;
-        
-        try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            return payload.userId || payload.sub;
-        } catch (e) {
-            return null;
-        }
-    }
-
     async function initializeCall() {
         try {
-            currentUserId = getCurrentUserId();
-            if (!currentUserId) {
-                showError('Authentication required');
-                return;
-            }
-
-            // Connect to WebSocket
-            connectWebSocket();
-
             // Get user media
             localStream = await navigator.mediaDevices.getUserMedia({
                 video: true,
@@ -361,24 +337,21 @@
                 startCallTimer();
             };
             
-            // Handle ICE candidates
+            // Handle ICE candidates (simplified for demo)
             peerConnection.onicecandidate = (event) => {
-                if (event.candidate && websocket && websocket.readyState === WebSocket.OPEN) {
-                    sendSignalingMessage({
-                        type: 'ice-candidate',
-                        candidate: event.candidate,
-                        toUserId: friendId
-                    });
+                if (event.candidate) {
+                    // In a real implementation, send this to the other peer via signaling server
+                    console.log('ICE candidate:', event.candidate);
                 }
             };
             
             // Update UI
             document.getElementById('callerName').textContent = friendName;
             
-            // If initiator, create offer after a short delay
-            if (isInitiator) {
-                setTimeout(() => createOffer(), 1000);
-            }
+            // Simulate starting call (in real implementation, you'd initiate WebRTC signaling)
+            setTimeout(() => {
+                simulateCallConnect();
+            }, 3000);
             
         } catch (error) {
             console.error('Error initializing call:', error);
@@ -386,148 +359,12 @@
         }
     }
 
-    function connectWebSocket() {
-        const token = getTokenFromCookie();
-        if (!token) {
-            showError('Authentication required');
-            return;
-        }
-
-        websocket = new WebSocket(`ws://${window.location.host}/video-call-ws?token=${encodeURIComponent(token)}`);
-        
-        websocket.onopen = () => {
-            console.log('WebSocket connected');
-            
-            // If this is the initiator, send call request
-            if (isInitiator) {
-                sendSignalingMessage({
-                    type: 'call-request',
-                    toUserId: friendId,
-                    fromUserName: 'You' // This should be current user's name
-                });
-            }
-        };
-        
-        websocket.onmessage = async (event) => {
-            const message = JSON.parse(event.data);
-            await handleSignalingMessage(message);
-        };
-        
-        websocket.onclose = () => {
-            console.log('WebSocket disconnected');
-        };
-        
-        websocket.onerror = (error) => {
-            console.error('WebSocket error:', error);
-            showError('Connection error');
-        };
-    }
-
-    async function handleSignalingMessage(message) {
-        try {
-            switch (message.type) {
-                case 'incoming-call':
-                    showIncomingCall(message.fromUserId, message.fromUserName);
-                    break;
-                    
-                case 'call-response':
-                    if (message.accepted) {
-                        console.log('Call accepted');
-                    } else {
-                        showError('Call declined');
-                        setTimeout(() => window.close(), 2000);
-                    }
-                    break;
-                    
-                case 'offer':
-                    await handleOffer(message.offer);
-                    break;
-                    
-                case 'answer':
-                    await handleAnswer(message.answer);
-                    break;
-                    
-                case 'ice-candidate':
-                    await handleIceCandidate(message.candidate);
-                    break;
-                    
-                case 'call-ended':
-                    showError('Call ended by remote user');
-                    setTimeout(() => window.close(), 2000);
-                    break;
-            }
-        } catch (error) {
-            console.error('Error handling signaling message:', error);
-        }
-    }
-
-    async function createOffer() {
-        try {
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-            
-            sendSignalingMessage({
-                type: 'offer',
-                offer: offer,
-                toUserId: friendId
-            });
-        } catch (error) {
-            console.error('Error creating offer:', error);
-        }
-    }
-
-    async function handleOffer(offer) {
-        try {
-            await peerConnection.setRemoteDescription(offer);
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
-            
-            sendSignalingMessage({
-                type: 'answer',
-                answer: answer,
-                toUserId: friendId
-            });
-        } catch (error) {
-            console.error('Error handling offer:', error);
-        }
-    }
-
-    async function handleAnswer(answer) {
-        try {
-            await peerConnection.setRemoteDescription(answer);
-        } catch (error) {
-            console.error('Error handling answer:', error);
-        }
-    }
-
-    async function handleIceCandidate(candidate) {
-        try {
-            await peerConnection.addIceCandidate(candidate);
-        } catch (error) {
-            console.error('Error handling ICE candidate:', error);
-        }
-    }
-
-    function sendSignalingMessage(message) {
-        if (websocket && websocket.readyState === WebSocket.OPEN) {
-            websocket.send(JSON.stringify(message));
-        }
-    }
-
-    function showIncomingCall(fromUserId, fromUserName) {
-        // Show incoming call UI (this would be for the receiving side)
-        // For simplicity, auto-accept for now
-        setTimeout(() => {
-            acceptCall(fromUserId);
-        }, 1000);
-    }
-
-    function acceptCall(fromUserId) {
-        sendSignalingMessage({
-            type: 'call-response',
-            toUserId: fromUserId,
-            accepted: true
-        });
+    function simulateCallConnect() {
+        // This is a simplified simulation
+        // In a real implementation, you'd handle WebRTC signaling through a server
+        document.getElementById('callStatus').style.display = 'none';
+        document.getElementById('controls').style.display = 'flex';
+        startCallTimer();
     }
 
     function startCallTimer() {
@@ -536,67 +373,59 @@
     }
 
     function updateCallDuration() {
-        if (callStartTime) {
-            const now = new Date();
-            const duration = Math.floor((now - callStartTime) / 1000);
-            const minutes = Math.floor(duration / 60);
-            const seconds = duration % 60;
-            document.getElementById('callDuration').textContent = 
-                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-        }
+        if (!callStartTime) return;
+        
+        const now = new Date();
+        const duration = Math.floor((now - callStartTime) / 1000);
+        const minutes = Math.floor(duration / 60).toString().padStart(2, '0');
+        const seconds = (duration % 60).toString().padStart(2, '0');
+        
+        document.getElementById('callDuration').textContent = `${minutes}:${seconds}`;
     }
 
     function toggleMute() {
-        if (localStream) {
-            const audioTrack = localStream.getAudioTracks()[0];
-            if (audioTrack) {
-                audioTrack.enabled = isMuted;
-                isMuted = !isMuted;
-                
-                const muteBtn = document.querySelector('.btn-mute');
-                const icon = muteBtn.querySelector('.material-icons');
-                
-                if (isMuted) {
-                    muteBtn.classList.add('disabled');
-                    icon.textContent = 'mic_off';
-                } else {
-                    muteBtn.classList.remove('disabled');
-                    icon.textContent = 'mic';
-                }
+        if (!localStream) return;
+        
+        const audioTrack = localStream.getAudioTracks()[0];
+        if (audioTrack) {
+            audioTrack.enabled = !audioTrack.enabled;
+            isMuted = !audioTrack.enabled;
+            
+            const btn = document.getElementById('muteBtn');
+            const icon = btn.querySelector('.material-icons');
+            
+            if (isMuted) {
+                btn.classList.add('muted');
+                icon.textContent = 'mic_off';
+            } else {
+                btn.classList.remove('muted');
+                icon.textContent = 'mic';
             }
         }
     }
 
     function toggleVideo() {
-        if (localStream) {
-            const videoTrack = localStream.getVideoTracks()[0];
-            if (videoTrack) {
-                videoTrack.enabled = !isVideoEnabled;
-                isVideoEnabled = !isVideoEnabled;
-                
-                const videoBtn = document.querySelector('.btn-video');
-                const icon = videoBtn.querySelector('.material-icons');
-                
-                if (!isVideoEnabled) {
-                    videoBtn.classList.add('disabled');
-                    icon.textContent = 'videocam_off';
-                } else {
-                    videoBtn.classList.remove('disabled');
-                    icon.textContent = 'videocam';
-                }
+        if (!localStream) return;
+        
+        const videoTrack = localStream.getVideoTracks()[0];
+        if (videoTrack) {
+            videoTrack.enabled = !videoTrack.enabled;
+            isVideoEnabled = videoTrack.enabled;
+            
+            const btn = document.getElementById('videoBtn');
+            const icon = btn.querySelector('.material-icons');
+            
+            if (isVideoEnabled) {
+                btn.classList.remove('disabled');
+                icon.textContent = 'videocam';
+            } else {
+                btn.classList.add('disabled');
+                icon.textContent = 'videocam_off';
             }
         }
     }
 
     function hangUp() {
-        // Send end call message
-        if (websocket && websocket.readyState === WebSocket.OPEN) {
-            sendSignalingMessage({
-                type: 'end-call',
-                toUserId: friendId
-            });
-        }
-        
         // Clean up
         if (localStream) {
             localStream.getTracks().forEach(track => track.stop());
@@ -606,34 +435,52 @@
             peerConnection.close();
         }
         
-        if (websocket) {
-            websocket.close();
-        }
-        
         if (callDurationInterval) {
             clearInterval(callDurationInterval);
         }
         
-        window.close();
+        // Return to previous page
+        window.history.back();
+    }
+
+    function acceptCall() {
+        document.getElementById('incomingCall').classList.add('hidden');
+        initializeCall();
+    }
+
+    function declineCall() {
+        window.history.back();
     }
 
     function showError(message) {
-        const statusDiv = document.getElementById('callStatus');
-        statusDiv.innerHTML = `
-            <h2>Error</h2>
+        document.getElementById('callStatus').innerHTML = `
+            <h2>Call Failed</h2>
             <p>${message}</p>
+            <button onclick="hangUp()" style="margin-top: 16px; padding: 8px 16px; background: white; color: black; border: none; border-radius: 8px; cursor: pointer;">
+                Go Back
+            </button>
         `;
-        statusDiv.style.display = 'block';
-        document.getElementById('controls').style.display = 'none';
     }
 
-    // Initialize call when page loads
-    window.onload = initializeCall;
+    // Check if this is an incoming call
+    const isIncoming = urlParams.get('incoming') === 'true';
     
-    // Clean up when page unloads
+    if (isIncoming) {
+        // Show incoming call UI
+        document.getElementById('incomingCallerName').textContent = friendName;
+        const initials = friendName.split(' ').map(n => n[0]).join('').toUpperCase();
+        document.getElementById('incomingAvatar').textContent = initials;
+        document.getElementById('incomingCall').classList.remove('hidden');
+    } else {
+        // Start outgoing call
+        initializeCall();
+    }
+
+    // Handle page unload
     window.addEventListener('beforeunload', () => {
         hangUp();
     });
 </script>
+
 </body>
 </html>

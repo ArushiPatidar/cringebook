@@ -713,7 +713,7 @@
         }
         
         const friendName = document.getElementById('chatName').textContent;
-        window.open(`video_call.html?friendId=${currentChatFriendId}&friendName=${encodeURIComponent(friendName)}`, '_blank');
+        window.open(`video_call.html?friendId=${currentChatFriendId}&friendName=${encodeURIComponent(friendName)}&initiator=true`, '_blank');
     }
 
     // Auto-refresh conversations every 30 seconds
