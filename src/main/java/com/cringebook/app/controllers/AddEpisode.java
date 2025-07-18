@@ -44,7 +44,7 @@ public class AddEpisode {
         return friendship != null;
     }
 
-    @GetMapping("/show episodes")
+    @GetMapping("/show_episodes")
     public ResponseEntity<Map<String, Object>> getEpisode(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer memoryId) {
         Integer requesterId = authentication.getIdFromToken(jwtToken);
         if (requesterId == 0) {
