@@ -2,9 +2,11 @@ package com.cringebook.app.controllers;
 
 
 import com.cringebook.app.entity.Episode;
+import com.cringebook.app.entity.Friendship;
 import com.cringebook.app.entity.Interest;
 import com.cringebook.app.entity.Photo;
 import com.cringebook.app.repository.EpisodeRepo;
+import com.cringebook.app.repository.FriendshipRepo;
 import com.cringebook.app.repository.MemoryRepo;
 import com.cringebook.app.repository.PhotoRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,22 +33,43 @@ public class AddPhoto {
     @Autowired
     private EpisodeRepo episodeRepo;
 
+    @Autowired
+    private FriendshipRepo friendshipRepo;
+
     Authentication authentication = new Authentication();
+
+    // Helper method to check if two users are friends
+    private boolean areFriends(Integer userId1, Integer userId2) {
+        if (userId1.equals(userId2)) {
+            return false; // Same user, not a friendship
+        }
+        Friendship friendship = friendshipRepo.findFriendshipBetweenUsers(userId1, userId2);
+        return friendship != null;
+    }
     @GetMapping("/show_photos")
     public ResponseEntity<List<Photo>> getPhoto(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer episodeId){
         System.out.println("episodeId " + episodeId );
-        Integer user_id = authentication.getIdFromToken(jwtToken);
-        Integer epiUserId = photoRepo.getUserIdForEpisodeId(episodeId);
-        System.out.println("epiUserId " + epiUserId );
-        System.out.println("user_id " + user_id );
-        if (user_id !=0  && Objects.equals(epiUserId, user_id)){
+        Integer requesterId = authentication.getIdFromToken(jwtToken);
+        if (requesterId == 0) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
+        
+        Integer episodeOwnerId = photoRepo.getUserIdForEpisodeId(episodeId);
+        System.out.println("episodeOwnerId " + episodeOwnerId );
+        System.out.println("requesterId " + requesterId );
+        
+        // Check access: owner can view own photos, friends can view friend's photos
+        boolean canAccess = requesterId.equals(episodeOwnerId) || areFriends(requesterId, episodeOwnerId);
+        
+        if (canAccess) {
             try{
-                List<Photo> photos= photoRepo.findByEpisodeId(episodeId);
+                List<Photo> photos = photoRepo.findByEpisodeId(episodeId);
                 return new ResponseEntity<>(photos, HttpStatus.OK);
             } catch (Exception e) {
                 return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
             }
-        }return new ResponseEntity<>(null, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
     }
 
     @GetMapping("/get_photo_from_url")
