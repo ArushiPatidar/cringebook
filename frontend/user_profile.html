@@ -185,8 +185,13 @@
             loadUserProfile();
         });
 
+        function getTokenFromCookie() {
+            const match = document.cookie.match(/(^| )Authorization=([^;]+)/);
+            return match ? decodeURIComponent(match[2]) : null;
+        }
+
         async function loadUserProfile() {
-            const token = localStorage.getItem('jwtToken');
+            const token = getTokenFromCookie();
             if (!token) {
                 window.location.href = 'login.html';
                 return;
@@ -275,7 +280,7 @@
         }
 
         async function sendFriendRequest() {
-            const token = localStorage.getItem('jwtToken');
+            const token = getTokenFromCookie();
             
             try {
                 const response = await fetch('/api/friends/request', {

@@ -121,6 +121,11 @@
         const searchBox = document.getElementById('searchBox');
         const searchResults = document.getElementById('searchResults');
 
+        function getTokenFromCookie() {
+            const match = document.cookie.match(/(^| )Authorization=([^;]+)/);
+            return match ? decodeURIComponent(match[2]) : null;
+        }
+
         searchBox.addEventListener('input', function() {
             clearTimeout(searchTimeout);
             const query = this.value.trim();
@@ -136,7 +141,7 @@
         });
 
         async function searchUsers(query) {
-            const token = localStorage.getItem('jwtToken');
+            const token = getTokenFromCookie();
             if (!token) {
                 window.location.href = 'login.html';
                 return;

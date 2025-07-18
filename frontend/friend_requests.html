@@ -181,8 +181,13 @@
             loadFriendRequests();
         });
 
+        function getTokenFromCookie() {
+            const match = document.cookie.match(/(^| )Authorization=([^;]+)/);
+            return match ? decodeURIComponent(match[2]) : null;
+        }
+
         async function loadFriendRequests() {
-            const token = localStorage.getItem('jwtToken');
+            const token = getTokenFromCookie();
             if (!token) {
                 window.location.href = 'login.html';
                 return;
@@ -249,7 +254,7 @@
         }
 
         async function acceptRequest(requestId) {
-            const token = localStorage.getItem('jwtToken');
+            const token = getTokenFromCookie();
             
             try {
                 const response = await fetch('/api/friends/accept', {
