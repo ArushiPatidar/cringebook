@@ -49,7 +49,7 @@ public class AddPhoto {
         return friendship != null;
     }
     @GetMapping("/show_photos")
-    public ResponseEntity<Map<String, Object>> getPhoto(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer episodeId){
+    public ResponseEntity<Map<String, Object>> getPhoto(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @RequestParam("episodeId") Integer episodeId){
         System.out.println("episodeId " + episodeId );
         Integer requesterId = authentication.getIdFromToken(jwtToken);
         if (requesterId == 0) {

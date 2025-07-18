@@ -45,7 +45,7 @@ public class AddEpisode {
     }
 
     @GetMapping("/show_episodes")
-    public ResponseEntity<Map<String, Object>> getEpisode(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer memoryId) {
+    public ResponseEntity<Map<String, Object>> getEpisode(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @RequestParam("memoryId") Integer memoryId) {
         Integer requesterId = authentication.getIdFromToken(jwtToken);
         if (requesterId == 0) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Feed - CringeBook</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* Material Design 3 Color Scheme and Components */
+        :root {
+          --md-primary: #3f51b5;
+          --md-primary-dark: #303f9f;
+          --md-primary-light: #5c6bc0;
+          --md-secondary: #03dac6;
+          --md-surface: #ffffff;
+          --md-surface-variant: #f5f5f5;
+          --md-background: #fafafa;
+          --md-error: #b00020;
+          --md-on-primary: #ffffff;
+          --md-on-surface: #000000;
+          --md-on-background: #000000;
+          --md-outline: #e0e0e0;
+          --md-outline-variant: #f0f0f0;
+          --md-border-radius-small: 8px;
+          --md-border-radius-medium: 12px;
+          --md-border-radius-large: 16px;
+          --md-elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24);
+          --md-elevation-2: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23);
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background-color: var(--md-background);
+          color: var(--md-on-background);
+          margin: 0;
+          padding: 0;
+          line-height: 1.5;
+        }
+
+        .md-top-app-bar {
+          background-color: var(--md-primary);
+          color: var(--md-on-primary);
+          padding: 16px 24px;
+          box-shadow: var(--md-elevation-1);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+        }
+
+        .md-top-app-bar-title {
+          font-size: 22px;
+          font-weight: 500;
+          letter-spacing: 0.15px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .md-top-app-bar-actions {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .md-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 10px 16px;
+          border: none;
+          border-radius: var(--md-border-radius-large);
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-decoration: none;
+          min-height: 40px;
+          gap: 4px;
+        }
+
+        .md-button-text {
+          background-color: transparent;
+          color: var(--md-on-primary);
+        }
+
+        .md-button-text:hover {
+          background-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .md-button-filled {
+          background-color: white;
+          color: var(--md-primary);
+        }
+
+        .md-button-filled:hover {
+          background-color: #f5f5f5;
+          box-shadow: var(--md-elevation-1);
+        }
+
+        .md-container {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 24px;
+        }
+
+        .memory-card {
+          background: var(--md-surface);
+          border-radius: var(--md-border-radius-medium);
+          box-shadow: var(--md-elevation-1);
+          overflow: hidden;
+          margin-bottom: 24px;
+          transition: all 0.2s ease;
+        }
+
+        .memory-card:hover {
+          box-shadow: var(--md-elevation-2);
+        }
+
+        .memory-header {
+          padding: 16px;
+          border-bottom: 1px solid var(--md-outline-variant);
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .memory-avatar {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: var(--md-primary);
+          color: var(--md-on-primary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 500;
+        }
+
+        .memory-user-info {
+          flex-grow: 1;
+        }
+
+        .memory-user-name {
+          font-weight: 500;
+          margin-bottom: 2px;
+        }
+
+        .memory-date {
+          font-size: 12px;
+          color: #666;
+        }
+
+        .memory-image {
+          width: 100%;
+          height: 300px;
+          object-fit: cover;
+          background: var(--md-surface-variant);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #666;
+          font-size: 24px;
+        }
+
+        .memory-content {
+          padding: 16px;
+        }
+
+        .memory-title {
+          font-weight: 500;
+          font-size: 18px;
+          margin-bottom: 8px;
+          color: var(--md-on-surface);
+        }
+
+        .memory-description {
+          color: #666;
+          font-size: 14px;
+          line-height: 1.4;
+          margin-bottom: 16px;
+        }
+
+        .memory-actions {
+          display: flex;
+          gap: 8px;
+          padding: 8px 16px 16px;
+          border-top: 1px solid var(--md-outline-variant);
+        }
+
+        .load-more-btn {
+          display: block;
+          margin: 24px auto;
+          padding: 12px 24px;
+          background: var(--md-primary);
+          color: var(--md-on-primary);
+          border: none;
+          border-radius: var(--md-border-radius-large);
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .load-more-btn:hover {
+          background: var(--md-primary-dark);
+        }
+
+        .load-more-btn:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+        }
+
+        .message {
+          text-align: center;
+          padding: 48px 24px;
+          color: #666;
+          background: var(--md-surface-variant);
+          border-radius: var(--md-border-radius-medium);
+          margin: 24px 0;
+        }
+
+        .loading-message {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+          .md-container {
+            padding: 16px;
+          }
+          
+          .md-top-app-bar {
+            padding: 12px 16px;
+          }
+          
+          .md-top-app-bar-title {
+            font-size: 20px;
+          }
+          
+          .memory-card {
+            margin-bottom: 16px;
+          }
+        }
+    </style>
+</head>
+<body>
+
+<div class="md-top-app-bar">
+    <div class="md-top-app-bar-title">
+        <span class="material-icons">dynamic_feed</span>
+        Feed
+    </div>
+    <div class="md-top-app-bar-actions">
+        <a href="search_users.html" class="md-button md-button-text">
+            <span class="material-icons">search</span>
+            Find Friends
+        </a>
+        <a href="friends_list.html" class="md-button md-button-text">
+            <span class="material-icons">people</span>
+            Friends
+        </a>
+        <a href="show_memory.html" class="md-button md-button-text">
+            <span class="material-icons">photo_library</span>
+            My Memories
+        </a>
+    </div>
+</div>
+
+<div class="md-container">
+    <div id="feedContainer"></div>
+    <div class="message" id="message" style="display: none;"></div>
+    <button id="loadMoreBtn" class="load-more-btn" style="display: none;">
+        Load More
+    </button>
+</div>
+
+<script>
+    let currentPage = 0;
+    let hasMore = true;
+    let loading = false;
+
+    function getTokenFromCookie() {
+        const match = document.cookie.match(/(^| )Authorization=([^;]+)/);
+        return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    function loadFeed(page = 0, append = false) {
+        if (loading) return;
+        
+        const token = getTokenFromCookie();
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        loading = true;
+        
+        if (!append) {
+            showMessage("Loading feed...", "loading");
+        }
+
+        fetch(`/feed?page=${page}&size=10`, {
+            method: "GET",
+            headers: {
+                "Authorization": token
+            }
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Failed to load feed.");
+            return res.json();
+        })
+        .then(data => {
+            hideMessage();
+            displayMemories(data.memories, append);
+            
+            currentPage = data.currentPage;
+            hasMore = data.hasMore;
+            
+            const loadMoreBtn = document.getElementById("loadMoreBtn");
+            if (hasMore && data.memories.length > 0) {
+                loadMoreBtn.style.display = "block";
+            } else {
+                loadMoreBtn.style.display = "none";
+            }
+            
+            if (!append && data.memories.length === 0) {
+                showMessage("No memories to show. Add some memories or make friends to see their posts!", "info");
+            }
+        })
+        .catch(err => {
+            showMessage("Error: " + err.message, "error");
+        })
+        .finally(() => {
+            loading = false;
+        });
+    }
+
+    function displayMemories(memories, append = false) {
+        const container = document.getElementById("feedContainer");
+        
+        if (!append) {
+            container.innerHTML = "";
+        }
+
+        memories.forEach(memory => {
+            const card = document.createElement("div");
+            card.className = "memory-card";
+
+            // You could enhance this to show the actual user who posted it
+            // For now, we'll use a placeholder
+            const userInitials = "U"; // Could be enhanced to show actual user initials
+            
+            card.innerHTML = `
+                <div class="memory-header">
+                    <div class="memory-avatar">${userInitials}</div>
+                    <div class="memory-user-info">
+                        <div class="memory-user-name">User</div>
+                        <div class="memory-date">Recently</div>
+                    </div>
+                </div>
+                ${memory.photo ? 
+                    `<img src="/get_photo_from_url?url=${encodeURIComponent(memory.photo)}" alt="Memory photo" class="memory-image" onerror="this.style.display='none'">` : 
+                    '<div class="memory-image"><span class="material-icons">photo</span></div>'
+                }
+                <div class="memory-content">
+                    <div class="memory-title">${escapeHtml(memory.title)}</div>
+                    <div class="memory-description">${escapeHtml(memory.description)}</div>
+                </div>
+                <div class="memory-actions">
+                    <button class="md-button md-button-text" onclick="viewMemory(${memory.memoryId})">
+                        <span class="material-icons">visibility</span>
+                        View Details
+                    </button>
+                </div>
+            `;
+
+            container.appendChild(card);
+        });
+    }
+
+    function viewMemory(memoryId) {
+        window.location.href = `show_episodes.html?memoryId=${memoryId}`;
+    }
+
+    function showMessage(text, type = "info") {
+        const messageEl = document.getElementById("message");
+        messageEl.innerHTML = `
+            <div class="loading-message">
+                <span class="material-icons">${type === "error" ? "error" : type === "loading" ? "hourglass_empty" : "info"}</span>
+                ${text}
+            </div>
+        `;
+        messageEl.style.display = "block";
+    }
+
+    function hideMessage() {
+        document.getElementById("message").style.display = "none";
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Event listeners
+    window.onload = () => loadFeed();
+    
+    document.getElementById("loadMoreBtn").onclick = () => {
+        loadFeed(currentPage + 1, true);
+    };
+</script>
+
+</body>
+</html>

@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.ArrayList;
 
 @RestController
 public class AddMemory {
@@ -47,7 +48,7 @@ public class AddMemory {
     }
 
     @GetMapping("/show_memory")
-    public ResponseEntity<Map<String, Object>> getMemory(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, Integer userId) {
+    public ResponseEntity<Map<String, Object>> getMemory(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, @RequestParam(value = "userId", required = false) Integer userId) {
         Integer requesterId = authentication.getIdFromToken(jwtToken);
         if (requesterId == 0) {
             return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
@@ -75,6 +76,56 @@ public class AddMemory {
             }
         }
         return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+    }
+
+    @GetMapping("/feed")
+    public ResponseEntity<Map<String, Object>> getFeed(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, 
+                                                       @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                       @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        Integer userId = authentication.getIdFromToken(jwtToken);
+        if (userId == 0) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
+        
+        try {
+            // Get user's own memories
+            List<Memory> userMemories = memoryRepo.findByUserId(userId);
+            
+            // Get friends' memories
+            List<Friendship> friendships = friendshipRepo.findFriendshipsByUser(userId);
+            List<Memory> friendMemories = new ArrayList<>();
+            
+            for (Friendship friendship : friendships) {
+                Integer friendId = friendship.getUser1Id().equals(userId) ? 
+                    friendship.getUser2Id() : friendship.getUser1Id();
+                List<Memory> friendUserMemories = memoryRepo.findByUserId(friendId);
+                friendMemories.addAll(friendUserMemories);
+            }
+            
+            // Combine and sort by creation date (newest first)
+            List<Memory> allMemories = new ArrayList<>();
+            allMemories.addAll(userMemories);
+            allMemories.addAll(friendMemories);
+            
+            // Sort by memory ID descending (newer first) - assuming higher ID = newer
+            allMemories.sort((m1, m2) -> m2.getMemoryId().compareTo(m1.getMemoryId()));
+            
+            // Apply pagination
+            int start = page * size;
+            int end = Math.min(start + size, allMemories.size());
+            List<Memory> pagedMemories = start < allMemories.size() ? 
+                allMemories.subList(start, end) : new ArrayList<>();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("memories", pagedMemories);
+            response.put("currentPage", page);
+            response.put("totalMemories", allMemories.size());
+            response.put("hasMore", end < allMemories.size());
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PostMapping("/save memory")
