@@ -62,3 +62,47 @@ ORDER BY u.name;
 SELECT * FROM friend_requests 
 WHERE (requester_id = ? AND recipient_id = ?) 
    OR (requester_id = ? AND recipient_id = ?);
+
+-- Create likes table for likes on memories, episodes, photos, and comments
+CREATE TABLE likes (
+    like_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    target_type VARCHAR(20) NOT NULL, -- 'memory', 'episode', 'photo', 'comment'
+    target_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user_table(user_id),
+    INDEX idx_user_likes (user_id),
+    INDEX idx_target (target_type, target_id),
+    UNIQUE KEY unique_like (user_id, target_type, target_id)
+);
+
+-- Create comments table for comments on memories, episodes, and photos
+CREATE TABLE comments (
+    comment_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    target_type VARCHAR(20) NOT NULL, -- 'memory', 'episode', 'photo'
+    target_id INT NOT NULL,
+    comment_text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user_table(user_id),
+    INDEX idx_user_comments (user_id),
+    INDEX idx_target_comments (target_type, target_id)
+);
+
+-- Sample queries for likes and comments
+
+-- Get like count for a target
+SELECT COUNT(*) FROM likes WHERE target_type = ? AND target_id = ?;
+
+-- Check if user liked a target
+SELECT * FROM likes WHERE user_id = ? AND target_type = ? AND target_id = ?;
+
+-- Get comments for a target
+SELECT c.*, u.name, u.username 
+FROM comments c
+JOIN user_table u ON c.user_id = u.user_id
+WHERE c.target_type = ? AND c.target_id = ?
+ORDER BY c.created_at ASC;
+
+-- Get comment count for a target
+SELECT COUNT(*) FROM comments WHERE target_type = ? AND target_id = ?;

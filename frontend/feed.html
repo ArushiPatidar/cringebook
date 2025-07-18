@@ -377,14 +377,41 @@
                     <div class="memory-description">${escapeHtml(memory.description)}</div>
                 </div>
                 <div class="memory-actions">
+                    <button class="md-button md-button-text" onclick="toggleLike('memory', ${memory.memoryId})" id="like-btn-${memory.memoryId}">
+                        <span class="material-icons" id="like-icon-${memory.memoryId}">favorite_border</span>
+                        <span id="like-count-${memory.memoryId}">0</span> Likes
+                    </button>
+                    <button class="md-button md-button-text" onclick="toggleComments(${memory.memoryId})">
+                        <span class="material-icons">comment</span>
+                        <span id="comment-count-${memory.memoryId}">0</span> Comments
+                    </button>
                     <button class="md-button md-button-text" onclick="viewMemory(${memory.memoryId})">
                         <span class="material-icons">visibility</span>
                         View Details
                     </button>
                 </div>
+                <div class="comments-section" id="comments-${memory.memoryId}" style="display: none;">
+                    <div class="comment-input" style="padding: 16px; border-top: 1px solid var(--md-outline-variant);">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" placeholder="Write a comment..." 
+                                   style="flex: 1; padding: 8px 12px; border: 1px solid var(--md-outline); border-radius: 20px; outline: none;"
+                                   id="comment-input-${memory.memoryId}"
+                                   onkeypress="if(event.key==='Enter') addComment('memory', ${memory.memoryId})">
+                            <button onclick="addComment('memory', ${memory.memoryId})" 
+                                    style="padding: 8px 16px; background: var(--md-primary); color: white; border: none; border-radius: 20px; cursor: pointer;">
+                                Post
+                            </button>
+                        </div>
+                    </div>
+                    <div id="comments-list-${memory.memoryId}" style="padding: 0 16px 16px;"></div>
+                </div>
             `;
 
             container.appendChild(card);
+            
+            // Load likes and comments for this memory
+            loadLikes('memory', memory.memoryId);
+            loadComments('memory', memory.memoryId);
         });
     }
 
@@ -411,6 +438,138 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    function toggleLike(targetType, targetId) {
+        const token = getTokenFromCookie();
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        fetch('/like', {
+            method: 'POST',
+            headers: {
+                'Authorization': token,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `targetType=${targetType}&targetId=${targetId}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            const icon = document.getElementById(`like-icon-${targetId}`);
+            const count = document.getElementById(`like-count-${targetId}`);
+            
+            if (data.liked) {
+                icon.textContent = 'favorite';
+                icon.style.color = '#e91e63';
+            } else {
+                icon.textContent = 'favorite_border';
+                icon.style.color = '';
+            }
+            
+            count.textContent = data.likeCount;
+        })
+        .catch(err => console.error('Error toggling like:', err));
+    }
+
+    function loadLikes(targetType, targetId) {
+        const token = getTokenFromCookie();
+        if (!token) return;
+
+        fetch(`/likes?targetType=${targetType}&targetId=${targetId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': token
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            const icon = document.getElementById(`like-icon-${targetId}`);
+            const count = document.getElementById(`like-count-${targetId}`);
+            
+            if (data.userLiked) {
+                icon.textContent = 'favorite';
+                icon.style.color = '#e91e63';
+            } else {
+                icon.textContent = 'favorite_border';
+                icon.style.color = '';
+            }
+            
+            count.textContent = data.likeCount;
+        })
+        .catch(err => console.error('Error loading likes:', err));
+    }
+
+    function toggleComments(targetId) {
+        const commentsSection = document.getElementById(`comments-${targetId}`);
+        const isVisible = commentsSection.style.display !== 'none';
+        
+        if (isVisible) {
+            commentsSection.style.display = 'none';
+        } else {
+            commentsSection.style.display = 'block';
+            loadComments('memory', targetId);
+        }
+    }
+
+    function addComment(targetType, targetId) {
+        const token = getTokenFromCookie();
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const input = document.getElementById(`comment-input-${targetId}`);
+        const commentText = input.value.trim();
+        
+        if (!commentText) return;
+
+        fetch('/comment', {
+            method: 'POST',
+            headers: {
+                'Authorization': token,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `targetType=${targetType}&targetId=${targetId}&commentText=${encodeURIComponent(commentText)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            input.value = '';
+            loadComments(targetType, targetId);
+        })
+        .catch(err => console.error('Error adding comment:', err));
+    }
+
+    function loadComments(targetType, targetId) {
+        const token = getTokenFromCookie();
+        if (!token) return;
+
+        fetch(`/comments?targetType=${targetType}&targetId=${targetId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': token
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            const commentsList = document.getElementById(`comments-list-${targetId}`);
+            const commentCount = document.getElementById(`comment-count-${targetId}`);
+            
+            commentCount.textContent = data.commentCount;
+            
+            commentsList.innerHTML = '';
+            data.comments.forEach(comment => {
+                const commentDiv = document.createElement('div');
+                commentDiv.style.cssText = 'margin-bottom: 8px; padding: 8px; background: var(--md-surface-variant); border-radius: 8px;';
+                commentDiv.innerHTML = `
+                    <div style="font-weight: 500; font-size: 14px; margin-bottom: 4px;">User</div>
+                    <div style="font-size: 14px;">${escapeHtml(comment.commentText)}</div>
+                `;
+                commentsList.appendChild(commentDiv);
+            });
+        })
+        .catch(err => console.error('Error loading comments:', err));
     }
 
     // Event listeners
