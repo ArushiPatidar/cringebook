@@ -106,3 +106,6 @@ ORDER BY c.created_at ASC;
 
 -- Get comment count for a target
 SELECT COUNT(*) FROM comments WHERE target_type = ? AND target_id = ?;
+
+-- Add profile picture column to user_table
+ALTER TABLE user_table ADD COLUMN profile_picture VARCHAR(255) DEFAULT NULL;

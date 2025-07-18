@@ -88,4 +88,49 @@ public class UserController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/profile-picture")
+    public ResponseEntity<Map<String, Object>> uploadProfilePicture(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken,
+            @RequestParam("image") org.springframework.web.multipart.MultipartFile image) {
+        
+        Integer userId = authService.getIdFromToken(jwtToken);
+        if (userId == 0) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
+        
+        if (image.isEmpty()) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "No image file provided");
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+        
+        try {
+            // Generate unique filename
+            String uuid = java.util.UUID.randomUUID().toString();
+            String filename = uuid + "_profile_" + image.getOriginalFilename();
+            String filepath = "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + filename;
+            
+            // Save the file
+            image.transferTo(new java.io.File(filepath));
+            
+            // Update user's profile picture in database
+            User user = userRepo.findByUserId(userId);
+            if (user != null) {
+                user.setProfilePicture(filename);
+                userRepo.save(user);
+                
+                Map<String, Object> response = new HashMap<>();
+                response.put("profilePicture", filename);
+                response.put("message", "Profile picture updated successfully");
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to upload profile picture");
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
