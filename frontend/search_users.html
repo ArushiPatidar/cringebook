@@ -2,52 +2,327 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Search Users</title>
+    <title>Find Friends - CringeBook</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
+        /* Material Design 3 Color Scheme and Components */
+        :root {
+          --md-primary: #3f51b5;
+          --md-primary-dark: #303f9f;
+          --md-primary-light: #5c6bc0;
+          --md-secondary: #03dac6;
+          --md-surface: #ffffff;
+          --md-surface-variant: #f5f5f5;
+          --md-background: #fafafa;
+          --md-error: #b00020;
+          --md-on-primary: #ffffff;
+          --md-on-surface: #000000;
+          --md-on-background: #000000;
+          --md-outline: #e0e0e0;
+          --md-outline-variant: #f0f0f0;
+          --md-border-radius-small: 8px;
+          --md-border-radius-medium: 12px;
+          --md-border-radius-large: 16px;
+          --md-elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24);
+          --md-elevation-2: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23);
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background: #f0f2f5;
-            margin: 0;
-            padding: 0;
+          font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background-color: var(--md-background);
+          color: var(--md-on-background);
+          margin: 0;
+          padding: 0;
+          line-height: 1.5;
         }
 
-        .topbar {
-            background-color: #3f51b5;
-            color: white;
-            padding: 15px 20px;
-            font-size: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .md-top-app-bar {
+          background-color: var(--md-primary);
+          color: var(--md-on-primary);
+          padding: 16px 24px;
+          box-shadow: var(--md-elevation-1);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          position: sticky;
+          top: 0;
+          z-index: 1000;
         }
 
-        .topbar .title {
-            font-weight: bold;
+        .md-top-app-bar-title {
+          font-size: 22px;
+          font-weight: 500;
+          letter-spacing: 0.15px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
 
-        .search-container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        .md-top-app-bar-actions {
+          display: flex;
+          gap: 8px;
+          align-items: center;
         }
 
-        .search-box {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-bottom: 20px;
+        .md-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 10px 16px;
+          border: none;
+          border-radius: var(--md-border-radius-large);
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-decoration: none;
+          min-height: 40px;
+          gap: 4px;
+        }
+
+        .md-button-text {
+          background-color: transparent;
+          color: var(--md-on-primary);
+        }
+
+        .md-button-text:hover {
+          background-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .md-container {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 24px;
+        }
+
+        .search-section {
+          background: var(--md-surface);
+          border-radius: var(--md-border-radius-large);
+          box-shadow: var(--md-elevation-1);
+          padding: 24px;
+          margin-bottom: 24px;
+        }
+
+        .search-title {
+          font-size: 24px;
+          font-weight: 500;
+          margin-bottom: 16px;
+          color: var(--md-on-surface);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .search-field {
+          position: relative;
+          margin-bottom: 8px;
+        }
+
+        .search-field input {
+          width: 100%;
+          padding: 16px 16px 16px 48px;
+          border: 1px solid var(--md-outline);
+          border-radius: var(--md-border-radius-small);
+          font-size: 16px;
+          font-family: inherit;
+          background-color: var(--md-surface);
+          color: var(--md-on-surface);
+          transition: border-color 0.2s ease;
+        }
+
+        .search-field input:focus {
+          outline: none;
+          border-color: var(--md-primary);
+          border-width: 2px;
+          padding-left: 47px;
+        }
+
+        .search-field .material-icons {
+          position: absolute;
+          left: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #666;
+          pointer-events: none;
+        }
+
+        .search-hint {
+          font-size: 14px;
+          color: #666;
+          margin-top: 8px;
+        }
+
+        .results-section {
+          margin-top: 24px;
         }
 
         .user-card {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border: 1px solid #e0e0e0;
+          background: var(--md-surface);
+          border-radius: var(--md-border-radius-medium);
+          box-shadow: var(--md-elevation-1);
+          padding: 20px;
+          margin-bottom: 16px;
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          transition: all 0.2s ease;
+          cursor: pointer;
+        }
+
+        .user-card:hover {
+          box-shadow: var(--md-elevation-2);
+          transform: translateY(-1px);
+        }
+
+        .user-avatar {
+          width: 56px;
+          height: 56px;
+          border-radius: 50%;
+          background: var(--md-primary);
+          color: var(--md-on-primary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          font-weight: 500;
+          flex-shrink: 0;
+        }
+
+        .user-info {
+          flex-grow: 1;
+        }
+
+        .user-name {
+          font-size: 18px;
+          font-weight: 500;
+          margin-bottom: 4px;
+          color: var(--md-on-surface);
+        }
+
+        .user-username {
+          font-size: 14px;
+          color: #666;
+        }
+
+        .empty-state {
+          text-align: center;
+          padding: 48px 24px;
+          color: #666;
+          background: var(--md-surface-variant);
+          border-radius: var(--md-border-radius-medium);
+        }
+
+        .empty-state .material-icons {
+          font-size: 48px;
+          color: #ccc;
+          margin-bottom: 16px;
+        }
+
+        .loading-state {
+          text-align: center;
+          padding: 32px 24px;
+          color: #666;
+        }
+
+        .loading-state .material-icons {
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+          .md-container {
+            padding: 16px;
+          }
+          
+          .search-section {
+            padding: 20px;
+          }
+          
+          .md-top-app-bar {
+            padding: 12px 16px;
+          }
+          
+          .md-top-app-bar-title {
+            font-size: 20px;
+          }
+          
+          .user-card {
+            padding: 16px;
+          }
+          
+          .user-avatar {
+            width: 48px;
+            height: 48px;
+            font-size: 20px;
+          }
+        }
+    </style>
+</head>
+<body>
+    <div class="md-top-app-bar">
+        <div class="md-top-app-bar-title">
+            <span class="material-icons">search</span>
+            Find Friends
+        </div>
+        <div class="md-top-app-bar-actions">
+            <a href="friends_list.html" class="md-button md-button-text">
+                <span class="material-icons">people</span>
+                My Friends
+            </a>
+            <a href="friend_requests.html" class="md-button md-button-text">
+                <span class="material-icons">mail</span>
+                Requests
+            </a>
+            <a href="show_memory.html" class="md-button md-button-text">
+                <span class="material-icons">photo_library</span>
+                Memories
+            </a>
+        </div>
+    </div>
+
+    <div class="md-container">
+        <div class="search-section">
+            <div class="search-title">
+                <span class="material-icons">person_search</span>
+                Discover People
+            </div>
+            <div class="search-field">
+                <span class="material-icons">search</span>
+                <input type="text" id="searchInput" placeholder="Search by name, username, or email...">
+            </div>
+            <div class="search-hint">
+                Start typing to find friends and connect with people you know
+            </div>
+        </div>
+
+        <div class="results-section">
+            <div id="loadingMessage" class="loading-state" style="display: none;">
+                <span class="material-icons">hourglass_empty</span>
+                <div>Searching...</div>
+            </div>
+            <div id="emptyMessage" class="empty-state">
+                <span class="material-icons">person_search</span>
+                <h3>Start your search</h3>
+                <p>Type in the search box above to find people you know</p>
+            </div>
+            <div id="noResultsMessage" class="empty-state" style="display: none;">
+                <span class="material-icons">search_off</span>
+                <h3>No users found</h3>
+                <p>Try searching with different keywords</p>
+            </div>
+            <div id="searchResults"></div>
+        </div>
+    </div>
             border-radius: 8px;
             margin-bottom: 10px;
             background: #f9f9f9;
@@ -106,39 +381,47 @@
 <body>
     <div class="topbar">
         <div class="title">CringeBook - Search Users</div>
-        <div>
-            <a href="show_memory.html" class="back-btn">Back to Home</a>
-        </div>
-    </div>
-
-    <div class="search-container">
-        <input type="text" id="searchBox" class="search-box" placeholder="Search by name, username, or email...">
-        <div id="searchResults"></div>
-    </div>
-
     <script>
         let searchTimeout;
-        const searchBox = document.getElementById('searchBox');
+        const searchInput = document.getElementById('searchInput');
         const searchResults = document.getElementById('searchResults');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const emptyMessage = document.getElementById('emptyMessage');
+        const noResultsMessage = document.getElementById('noResultsMessage');
 
         function getTokenFromCookie() {
             const match = document.cookie.match(/(^| )Authorization=([^;]+)/);
             return match ? decodeURIComponent(match[2]) : null;
         }
 
-        searchBox.addEventListener('input', function() {
+        searchInput.addEventListener('input', function() {
             clearTimeout(searchTimeout);
             const query = this.value.trim();
             
             if (query.length < 2) {
+                hideAllMessages();
+                emptyMessage.style.display = 'block';
                 searchResults.innerHTML = '';
                 return;
             }
 
+            showLoading();
             searchTimeout = setTimeout(() => {
                 searchUsers(query);
             }, 300);
         });
+
+        function hideAllMessages() {
+            loadingMessage.style.display = 'none';
+            emptyMessage.style.display = 'none';
+            noResultsMessage.style.display = 'none';
+        }
+
+        function showLoading() {
+            hideAllMessages();
+            loadingMessage.style.display = 'block';
+            searchResults.innerHTML = '';
+        }
 
         async function searchUsers(query) {
             const token = getTokenFromCookie();
@@ -155,39 +438,41 @@
                     }
                 });
 
+                hideAllMessages();
+
                 if (response.ok) {
                     const users = await response.json();
                     displaySearchResults(users);
                 } else if (response.status === 401) {
                     window.location.href = 'login.html';
                 } else {
-                    searchResults.innerHTML = '<div class="no-results">Error searching users</div>';
+                    noResultsMessage.style.display = 'block';
                 }
             } catch (error) {
                 console.error('Error:', error);
-                searchResults.innerHTML = '<div class="no-results">Error searching users</div>';
+                hideAllMessages();
+                noResultsMessage.style.display = 'block';
             }
         }
 
         function displaySearchResults(users) {
             if (users.length === 0) {
-                searchResults.innerHTML = '<div class="no-results">No users found</div>';
+                noResultsMessage.style.display = 'block';
                 return;
             }
 
             let html = '';
             users.forEach(user => {
+                // Get user's initials for avatar
+                const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                
                 html += `
-                    <div class="user-card">
+                    <div class="user-card" onclick="viewProfile(${user.userID})">
+                        <div class="user-avatar">${initials}</div>
                         <div class="user-info">
                             <div class="user-name">${escapeHtml(user.name)}</div>
-                            <div class="user-details">
-                                @${escapeHtml(user.userName)} • ${escapeHtml(user.email)}
-                            </div>
+                            <div class="user-username">@${escapeHtml(user.userName)}</div>
                         </div>
-                        <button class="view-profile-btn" onclick="viewProfile(${user.userID})">
-                            View Profile
-                        </button>
                     </div>
                 `;
             });
