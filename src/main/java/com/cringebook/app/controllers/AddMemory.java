@@ -3,8 +3,10 @@ package com.cringebook.app.controllers;
 import com.cringebook.app.entity.Episode;
 import com.cringebook.app.entity.Friendship;
 import com.cringebook.app.entity.Memory;
+import com.cringebook.app.entity.User;
 import com.cringebook.app.repository.FriendshipRepo;
 import com.cringebook.app.repository.MemoryRepo;
+import com.cringebook.app.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -30,6 +32,9 @@ public class AddMemory {
 
     @Autowired
     private FriendshipRepo friendshipRepo;
+
+    @Autowired
+    private UserRepo userRepo;
 
     Authentication authentication = new Authentication();
 
@@ -116,8 +121,33 @@ public class AddMemory {
             List<Memory> pagedMemories = start < allMemories.size() ? 
                 allMemories.subList(start, end) : new ArrayList<>();
             
+            // Create enriched memory objects with user information
+            List<Map<String, Object>> enrichedMemories = new ArrayList<>();
+            for (Memory memory : pagedMemories) {
+                User memoryOwner = userRepo.findByUserId(memory.getUserId());
+                Map<String, Object> enrichedMemory = new HashMap<>();
+                enrichedMemory.put("memoryId", memory.getMemoryId());
+                enrichedMemory.put("userId", memory.getUserId());
+                enrichedMemory.put("photo", memory.getPhoto());
+                enrichedMemory.put("title", memory.getTitle());
+                enrichedMemory.put("description", memory.getDescription());
+                
+                // Add user information
+                if (memoryOwner != null) {
+                    enrichedMemory.put("userName", memoryOwner.getUserName());
+                    enrichedMemory.put("userFullName", memoryOwner.getName());
+                    enrichedMemory.put("userProfilePicture", memoryOwner.getProfilePicture());
+                } else {
+                    enrichedMemory.put("userName", "unknown");
+                    enrichedMemory.put("userFullName", "Unknown User");
+                    enrichedMemory.put("userProfilePicture", null);
+                }
+                
+                enrichedMemories.add(enrichedMemory);
+            }
+            
             Map<String, Object> response = new HashMap<>();
-            response.put("memories", pagedMemories);
+            response.put("memories", enrichedMemories);
             response.put("currentPage", page);
             response.put("totalMemories", allMemories.size());
             response.put("hasMore", end < allMemories.size());

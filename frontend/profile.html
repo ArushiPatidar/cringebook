@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile - CringeBook</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* Material Design 3 Color Scheme and Components */
+        :root {
+          --md-primary: #3f51b5;
+          --md-primary-dark: #303f9f;
+          --md-primary-light: #5c6bc0;
+          --md-secondary: #03dac6;
+          --md-surface: #ffffff;
+          --md-surface-variant: #f5f5f5;
+          --md-background: #fafafa;
+          --md-error: #b00020;
+          --md-on-primary: #ffffff;
+          --md-on-surface: #000000;
+          --md-on-background: #000000;
+          --md-outline: #e0e0e0;
+          --md-outline-variant: #f0f0f0;
+          --md-border-radius-small: 8px;
+          --md-border-radius-medium: 12px;
+          --md-border-radius-large: 16px;
+          --md-elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24);
+          --md-elevation-2: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23);
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background-color: var(--md-background);
+          color: var(--md-on-background);
+          margin: 0;
+          padding: 0;
+          line-height: 1.5;
+        }
+
+        .md-top-app-bar {
+          background-color: var(--md-primary);
+          color: var(--md-on-primary);
+          padding: 16px 24px;
+          box-shadow: var(--md-elevation-1);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+        }
+
+        .md-top-app-bar-title {
+          font-size: 22px;
+          font-weight: 500;
+          letter-spacing: 0.15px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .md-top-app-bar-actions {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .md-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 10px 16px;
+          border: none;
+          border-radius: var(--md-border-radius-large);
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-decoration: none;
+          min-height: 40px;
+          gap: 4px;
+        }
+
+        .md-button-text {
+          background-color: transparent;
+          color: var(--md-on-primary);
+        }
+
+        .md-button-text:hover {
+          background-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .md-button-filled {
+          background-color: white;
+          color: var(--md-primary);
+        }
+
+        .md-button-filled:hover {
+          background-color: #f5f5f5;
+          box-shadow: var(--md-elevation-1);
+        }
+
+        .md-container {
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 24px;
+        }
+
+        .profile-card {
+          background: var(--md-surface);
+          border-radius: var(--md-border-radius-large);
+          box-shadow: var(--md-elevation-1);
+          overflow: hidden;
+          margin-bottom: 24px;
+        }
+
+        .profile-header {
+          background: linear-gradient(135deg, var(--md-primary), var(--md-primary-light));
+          color: var(--md-on-primary);
+          padding: 32px 24px 24px;
+          text-align: center;
+          position: relative;
+        }
+
+        .profile-avatar {
+          width: 120px;
+          height: 120px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.2);
+          color: var(--md-on-primary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 48px;
+          font-weight: 500;
+          margin: 0 auto 16px;
+          border: 4px solid rgba(255, 255, 255, 0.3);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .profile-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .profile-name {
+          font-size: 28px;
+          font-weight: 500;
+          margin-bottom: 8px;
+        }
+
+        .profile-username {
+          font-size: 16px;
+          opacity: 0.8;
+        }
+
+        .upload-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity 0.2s;
+          cursor: pointer;
+          border-radius: 50%;
+        }
+
+        .profile-avatar:hover .upload-overlay {
+          opacity: 1;
+        }
+
+        .profile-info {
+          padding: 24px;
+        }
+
+        .info-section {
+          margin-bottom: 24px;
+        }
+
+        .info-section h3 {
+          font-size: 18px;
+          font-weight: 500;
+          margin-bottom: 16px;
+          color: var(--md-on-surface);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .info-row {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          margin-bottom: 16px;
+          padding: 12px;
+          background: var(--md-surface-variant);
+          border-radius: var(--md-border-radius-small);
+        }
+
+        .info-icon {
+          color: var(--md-primary);
+          width: 24px;
+          height: 24px;
+        }
+
+        .info-content {
+          flex-grow: 1;
+        }
+
+        .info-label {
+          font-size: 12px;
+          color: #666;
+          margin-bottom: 2px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .info-value {
+          font-size: 16px;
+          color: var(--md-on-surface);
+        }
+
+        .edit-section {
+          background: var(--md-surface-variant);
+          border-radius: var(--md-border-radius-medium);
+          padding: 24px;
+          margin-top: 24px;
+        }
+
+        .edit-title {
+          font-size: 20px;
+          font-weight: 500;
+          margin-bottom: 20px;
+          color: var(--md-on-surface);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .form-field {
+          margin-bottom: 20px;
+        }
+
+        .form-field label {
+          display: block;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--md-on-surface);
+          margin-bottom: 8px;
+        }
+
+        .form-field input {
+          width: 100%;
+          padding: 12px 16px;
+          border: 1px solid var(--md-outline);
+          border-radius: var(--md-border-radius-small);
+          font-size: 16px;
+          font-family: inherit;
+          background-color: var(--md-surface);
+          color: var(--md-on-surface);
+          transition: border-color 0.2s ease;
+        }
+
+        .form-field input:focus {
+          outline: none;
+          border-color: var(--md-primary);
+          border-width: 2px;
+          padding: 11px 15px;
+        }
+
+        .action-buttons {
+          display: flex;
+          gap: 12px;
+          justify-content: flex-end;
+          margin-top: 24px;
+        }
+
+        .btn-save {
+          background-color: var(--md-primary);
+          color: var(--md-on-primary);
+        }
+
+        .btn-save:hover {
+          background-color: var(--md-primary-dark);
+        }
+
+        .btn-cancel {
+          background-color: transparent;
+          color: var(--md-primary);
+          border: 1px solid var(--md-outline);
+        }
+
+        .btn-cancel:hover {
+          background-color: rgba(63, 81, 181, 0.1);
+        }
+
+        .message {
+          padding: 12px 16px;
+          border-radius: var(--md-border-radius-small);
+          margin-bottom: 16px;
+          display: none;
+        }
+
+        .message.success {
+          background-color: #4caf50;
+          color: white;
+        }
+
+        .message.error {
+          background-color: var(--md-error);
+          color: white;
+        }
+
+        .hidden {
+          display: none !important;
+        }
+
+        @media (max-width: 768px) {
+          .md-container {
+            padding: 16px;
+          }
+          
+          .profile-header {
+            padding: 24px 16px 16px;
+          }
+          
+          .profile-avatar {
+            width: 100px;
+            height: 100px;
+            font-size: 40px;
+          }
+          
+          .profile-name {
+            font-size: 24px;
+          }
+          
+          .md-top-app-bar {
+            padding: 12px 16px;
+          }
+          
+          .action-buttons {
+            flex-direction: column;
+          }
+        }
+    </style>
+</head>
+<body>
+
+<div class="md-top-app-bar">
+    <div class="md-top-app-bar-title">
+        <span class="material-icons">account_circle</span>
+        My Profile
+    </div>
+    <div class="md-top-app-bar-actions">
+        <a href="feed.html" class="md-button md-button-text">
+            <span class="material-icons">dynamic_feed</span>
+            Feed
+        </a>
+        <a href="search_users.html" class="md-button md-button-text">
+            <span class="material-icons">search</span>
+            Find Friends
+        </a>
+        <a href="show_memory.html" class="md-button md-button-text">
+            <span class="material-icons">photo_library</span>
+            Memories
+        </a>
+    </div>
+</div>
+
+<div class="md-container">
+    <div id="message" class="message"></div>
+
+    <div class="profile-card">
+        <div class="profile-header">
+            <div class="profile-avatar" id="profileAvatar">
+                <span id="avatarInitials">U</span>
+                <img id="avatarImage" style="display: none;" alt="Profile picture">
+                <div class="upload-overlay" onclick="triggerFileUpload()">
+                    <span class="material-icons">camera_alt</span>
+                </div>
+            </div>
+            <div class="profile-name" id="profileName">Loading...</div>
+            <div class="profile-username" id="profileUsername">@loading...</div>
+        </div>
+
+        <div class="profile-info">
+            <div class="info-section">
+                <h3>
+                    <span class="material-icons">person</span>
+                    Personal Information
+                </h3>
+                <div class="info-row">
+                    <span class="material-icons info-icon">account_circle</span>
+                    <div class="info-content">
+                        <div class="info-label">Full Name</div>
+                        <div class="info-value" id="displayName">-</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <span class="material-icons info-icon">email</span>
+                    <div class="info-content">
+                        <div class="info-label">Email</div>
+                        <div class="info-value" id="displayEmail">-</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <span class="material-icons info-icon">phone</span>
+                    <div class="info-content">
+                        <div class="info-label">Phone</div>
+                        <div class="info-value" id="displayPhone">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="md-button btn-save" onclick="toggleEditMode()">
+                    <span class="material-icons">edit</span>
+                    Edit Profile
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="edit-section hidden" id="editSection">
+        <div class="edit-title">
+            <span class="material-icons">edit</span>
+            Edit Profile Information
+        </div>
+        
+        <div class="form-field">
+            <label for="editName">Full Name</label>
+            <input type="text" id="editName" placeholder="Enter your full name">
+        </div>
+        
+        <div class="form-field">
+            <label for="editEmail">Email Address</label>
+            <input type="email" id="editEmail" placeholder="Enter your email">
+        </div>
+        
+        <div class="form-field">
+            <label for="editPhone">Phone Number</label>
+            <input type="tel" id="editPhone" placeholder="Enter your phone number">
+        </div>
+
+        <div class="action-buttons">
+            <button class="md-button btn-save" onclick="saveProfile()">
+                <span class="material-icons">save</span>
+                Save Changes
+            </button>
+            <button class="md-button btn-cancel" onclick="cancelEdit()">
+                <span class="material-icons">cancel</span>
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<input type="file" id="profilePictureInput" accept="image/*" style="display: none;" onchange="uploadProfilePicture()">
+
+<script>
+    let isEditMode = false;
+    let currentUser = null;
+
+    function getTokenFromCookie() {
+        const match = document.cookie.match(/(^| )Authorization=([^;]+)/);
+        return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    function loadProfile() {
+        const token = getTokenFromCookie();
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        fetch('/api/users/profile', {
+            method: 'GET',
+            headers: {
+                'Authorization': token
+            }
+        })
+        .then(res => {
+            if (!res.ok) {
+                if (res.status === 401) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                throw new Error('Failed to load profile');
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data && data.user) {
+                currentUser = data.user;
+                displayProfile(data.user);
+            }
+        })
+        .catch(err => {
+            showMessage('Error loading profile: ' + err.message, 'error');
+        });
+    }
+
+    function displayProfile(user) {
+        // Header
+        document.getElementById('profileName').textContent = user.name || 'No Name';
+        document.getElementById('profileUsername').textContent = '@' + (user.userName || 'unknown');
+        
+        // Avatar
+        const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
+        document.getElementById('avatarInitials').textContent = initials;
+        
+        if (user.profilePicture) {
+            const avatarImage = document.getElementById('avatarImage');
+            avatarImage.src = `/get_photo_from_url?url=${encodeURIComponent(user.profilePicture)}`;
+            avatarImage.style.display = 'block';
+            document.getElementById('avatarInitials').style.display = 'none';
+        }
+
+        // Info sections
+        document.getElementById('displayName').textContent = user.name || '-';
+        document.getElementById('displayEmail').textContent = user.email || '-';
+        document.getElementById('displayPhone').textContent = user.phone || '-';
+    }
+
+    function toggleEditMode() {
+        if (isEditMode) {
+            cancelEdit();
+        } else {
+            enterEditMode();
+        }
+    }
+
+    function enterEditMode() {
+        isEditMode = true;
+        
+        // Populate edit fields
+        document.getElementById('editName').value = currentUser.name || '';
+        document.getElementById('editEmail').value = currentUser.email || '';
+        document.getElementById('editPhone').value = currentUser.phone || '';
+        
+        // Show edit section
+        document.getElementById('editSection').classList.remove('hidden');
+        
+        // Scroll to edit section
+        document.getElementById('editSection').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+        isEditMode = false;
+        document.getElementById('editSection').classList.add('hidden');
+    }
+
+    function saveProfile() {
+        const token = getTokenFromCookie();
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const name = document.getElementById('editName').value.trim();
+        const email = document.getElementById('editEmail').value.trim();
+        const phone = document.getElementById('editPhone').value.trim();
+
+        const formData = new FormData();
+        if (name) formData.append('name', name);
+        if (email) formData.append('email', email);
+        if (phone) formData.append('phone', phone);
+
+        fetch('/api/users/profile', {
+            method: 'PUT',
+            headers: {
+                'Authorization': token
+            },
+            body: formData
+        })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error('Failed to update profile');
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data && data.user) {
+                currentUser = data.user;
+                displayProfile(data.user);
+                cancelEdit();
+                showMessage('Profile updated successfully!', 'success');
+            }
+        })
+        .catch(err => {
+            showMessage('Error updating profile: ' + err.message, 'error');
+        });
+    }
+
+    function triggerFileUpload() {
+        document.getElementById('profilePictureInput').click();
+    }
+
+    function uploadProfilePicture() {
+        const fileInput = document.getElementById('profilePictureInput');
+        const file = fileInput.files[0];
+        
+        if (!file) return;
+
+        const token = getTokenFromCookie();
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        fetch('/api/users/profile-picture', {
+            method: 'POST',
+            headers: {
+                'Authorization': token
+            },
+            body: formData
+        })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error('Failed to upload profile picture');
+            }
+            return res.json();
+        })
+        .then(data => {
+            if (data && data.profilePicture) {
+                // Update current user profile picture
+                currentUser.profilePicture = data.profilePicture;
+                
+                // Update avatar display
+                const avatarImage = document.getElementById('avatarImage');
+                avatarImage.src = `/get_photo_from_url?url=${encodeURIComponent(data.profilePicture)}`;
+                avatarImage.style.display = 'block';
+                document.getElementById('avatarInitials').style.display = 'none';
+                
+                showMessage('Profile picture updated successfully!', 'success');
+            }
+        })
+        .catch(err => {
+            showMessage('Error uploading profile picture: ' + err.message, 'error');
+        });
+    }
+
+    function showMessage(text, type) {
+        const messageEl = document.getElementById('message');
+        messageEl.textContent = text;
+        messageEl.className = `message ${type}`;
+        messageEl.style.display = 'block';
+        
+        setTimeout(() => {
+            messageEl.style.display = 'none';
+        }, 5000);
+    }
+
+    window.onload = loadProfile;
+</script>
+
+</body>
+</html>

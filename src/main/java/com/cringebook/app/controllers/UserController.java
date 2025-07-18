@@ -89,7 +89,73 @@ public class UserController {
         }
     }
 
-    @PostMapping("/profile-picture")
+    @GetMapping("/profile")
+    public ResponseEntity<Map<String, Object>> getCurrentUserProfile(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken) {
+        
+        Integer currentUserId = authService.getIdFromToken(jwtToken);
+        if (currentUserId == 0) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
+        
+        try {
+            User user = userRepo.findByUserId(currentUserId);
+            if (user == null) {
+                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            }
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("user", user);
+            response.put("isCurrentUser", true);
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<Map<String, Object>> updateCurrentUserProfile(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken,
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String phone) {
+        
+        Integer currentUserId = authService.getIdFromToken(jwtToken);
+        if (currentUserId == 0) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
+        
+        try {
+            User user = userRepo.findByUserId(currentUserId);
+            if (user == null) {
+                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            }
+            
+            // Update fields if provided
+            if (name != null && !name.trim().isEmpty()) {
+                user.setName(name.trim());
+            }
+            if (email != null && !email.trim().isEmpty()) {
+                user.setEmail(email.trim());
+            }
+            if (phone != null && !phone.trim().isEmpty()) {
+                user.setPhone(phone.trim());
+            }
+            
+            userRepo.save(user);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("user", user);
+            response.put("message", "Profile updated successfully");
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Failed to update profile");
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     public ResponseEntity<Map<String, Object>> uploadProfilePicture(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken,
             @RequestParam("image") org.springframework.web.multipart.MultipartFile image) {

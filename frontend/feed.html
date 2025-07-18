@@ -356,16 +356,17 @@
             const card = document.createElement("div");
             card.className = "memory-card";
 
-            // You could enhance this to show the actual user who posted it
-            // For now, we'll use a placeholder
-            const userInitials = "U"; // Could be enhanced to show actual user initials
+            // Get user initials for avatar
+            const userInitials = memory.userFullName ? 
+                memory.userFullName.split(' ').map(n => n[0]).join('').toUpperCase() : 
+                memory.userName ? memory.userName.charAt(0).toUpperCase() : 'U';
             
             card.innerHTML = `
                 <div class="memory-header">
                     <div class="memory-avatar">${userInitials}</div>
                     <div class="memory-user-info">
-                        <div class="memory-user-name">User</div>
-                        <div class="memory-date">Recently</div>
+                        <div class="memory-user-name">${escapeHtml(memory.userFullName || memory.userName || 'Unknown User')}</div>
+                        <div class="memory-date">@${escapeHtml(memory.userName || 'unknown')}</div>
                     </div>
                 </div>
                 ${memory.photo ? 
