@@ -5,107 +5,227 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Show Episodes</title>
+    <title>Episodes - CringeBook</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        body {
-          font-family: Arial, sans-serif;
-          background: #f0f2f5;
-          margin: 0;
-          padding: 0;
+        /* Material Design 3 Color Scheme and Components */
+        :root {
+          --md-primary: #3f51b5;
+          --md-primary-dark: #303f9f;
+          --md-primary-light: #5c6bc0;
+          --md-secondary: #03dac6;
+          --md-surface: #ffffff;
+          --md-surface-variant: #f5f5f5;
+          --md-background: #fafafa;
+          --md-error: #b00020;
+          --md-on-primary: #ffffff;
+          --md-on-surface: #000000;
+          --md-on-background: #000000;
+          --md-outline: #e0e0e0;
+          --md-outline-variant: #f0f0f0;
+          --md-border-radius-small: 8px;
+          --md-border-radius-medium: 12px;
+          --md-border-radius-large: 16px;
+          --md-elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24);
+          --md-elevation-2: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23);
         }
 
-        .topbar {
-          background-color: #3f51b5;
-          color: white;
-          padding: 15px 20px;
-          font-size: 20px;
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background-color: var(--md-background);
+          color: var(--md-on-background);
+          margin: 0;
+          padding: 0;
+          line-height: 1.5;
+        }
+
+        .md-top-app-bar {
+          background-color: var(--md-primary);
+          color: var(--md-on-primary);
+          padding: 16px 24px;
+          box-shadow: var(--md-elevation-1);
           display: flex;
+          align-items: center;
           justify-content: space-between;
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+        }
+
+        .md-top-app-bar-title {
+          font-size: 22px;
+          font-weight: 500;
+          letter-spacing: 0.15px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .md-top-app-bar-actions {
+          display: flex;
+          gap: 8px;
           align-items: center;
         }
 
-        .topbar .title {
-          font-weight: bold;
-        }
-
-        .topbar .actions button {
-          background: white;
-          color: #3f51b5;
-          border: none;
-          padding: 8px 12px;
-          font-weight: bold;
-          border-radius: 6px;
-          cursor: pointer;
-          margin-left: 10px;
-        }
-
-        .topbar .actions button:hover {
-          background-color: #e8eaf6;
-        }
-
-
-        .container {
-          padding: 20px;
-          display: flex;
-          flex-wrap: wrap;
-          gap: 20px;
+        .md-button {
+          display: inline-flex;
+          align-items: center;
           justify-content: center;
+          padding: 10px 16px;
+          border: none;
+          border-radius: var(--md-border-radius-large);
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-decoration: none;
+          min-height: 40px;
+          gap: 4px;
+        }
+
+        .md-button-text {
+          background-color: transparent;
+          color: var(--md-on-primary);
+        }
+
+        .md-button-text:hover {
+          background-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .md-button-filled {
+          background-color: white;
+          color: var(--md-primary);
+        }
+
+        .md-button-filled:hover {
+          background-color: #f5f5f5;
+          box-shadow: var(--md-elevation-1);
+        }
+
+        .md-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 24px;
+        }
+
+        .md-grid {
+          display: grid;
+          gap: 24px;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         }
 
         .episode-card {
-          background: white;
-          width: 300px;
-          border-radius: 12px;
-          box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);
+          background: var(--md-surface);
+          border-radius: var(--md-border-radius-medium);
+          box-shadow: var(--md-elevation-1);
           overflow: hidden;
-          transition: transform 0.2s;
+          transition: all 0.2s ease;
+          cursor: pointer;
         }
 
         .episode-card:hover {
-          transform: translateY(-5px);
+          box-shadow: var(--md-elevation-2);
+          transform: translateY(-4px);
         }
 
         .episode-card img {
           width: 100%;
           height: 200px;
           object-fit: cover;
+          background: var(--md-surface-variant);
         }
 
         .episode-content {
-          padding: 15px;
+          padding: 16px;
         }
 
         .episode-title {
           font-size: 18px;
-          font-weight: bold;
+          font-weight: 500;
           margin-bottom: 8px;
+          color: var(--md-on-surface);
         }
 
         .episode-description {
           font-size: 14px;
-          color: #555;
+          color: #666;
+          line-height: 1.4;
         }
 
         .message {
-          margin-top: 20px;
           text-align: center;
-          font-weight: bold;
-          color: red;
+          padding: 48px 24px;
+          color: #666;
+          background: var(--md-surface-variant);
+          border-radius: var(--md-border-radius-medium);
+          margin: 24px 0;
+        }
+
+        .error-message {
+          color: var(--md-error);
+          background: #ffebee;
+        }
+
+        .loading-message {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+          .md-container {
+            padding: 16px;
+          }
+          
+          .md-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+          
+          .md-top-app-bar {
+            padding: 12px 16px;
+          }
+          
+          .md-top-app-bar-title {
+            font-size: 20px;
+          }
+          
+          .md-top-app-bar-actions {
+            gap: 4px;
+          }
         }
     </style>
 </head>
 <body>
 
-<div class="topbar">
-    <div class="title">🎞️ Episodes</div>
-    <div class="actions">
-        <button id="backToMemoryBtn">🔙 Back to Memory</button>
-        <button id="addEpisodeBtn">➕ Add Episode</button>
+<div class="md-top-app-bar">
+    <div class="md-top-app-bar-title">
+        <span class="material-icons">movie</span>
+        Episodes
+    </div>
+    <div class="md-top-app-bar-actions">
+        <button id="backToMemoryBtn" class="md-button md-button-text">
+            <span class="material-icons">arrow_back</span>
+            Back to Memory
+        </button>
+        <button id="addEpisodeBtn" class="md-button md-button-filled">
+            <span class="material-icons">add</span>
+            Add Episode
+        </button>
     </div>
 </div>
 
-<div class="container" id="episodeContainer"></div>
-<div class="message" id="message"></div>
+<div class="md-container">
+    <div class="md-grid" id="episodeContainer"></div>
+    <div class="message" id="message" style="display: none;"></div>
+</div>
 
 <script>
     function getTokenFromCookie() {
@@ -123,7 +243,7 @@
       const memoryId = getQueryParam("memoryId");
 
       if (!token || !memoryId) {
-        document.getElementById("message").textContent = "Missing token or memory ID.";
+        showMessage("Missing token or memory ID.", "error");
         return;
       }
 
@@ -147,11 +267,11 @@
         // Hide add button if not owner
         const addButton = document.getElementById("addEpisodeBtn");
         if (addButton) {
-          addButton.style.display = isOwner ? "block" : "none";
+          addButton.style.display = isOwner ? "flex" : "none";
         }
 
         if (!episodes || episodes.length === 0) {
-          document.getElementById("message").textContent = "No episodes found.";
+          showMessage("No episodes found.", "info");
           return;
         }
 
@@ -179,21 +299,32 @@
           card.appendChild(image);
           card.appendChild(content);
 
-        // ✅ Add click handler to open show_photos.html
-        card.style.cursor = "pointer";
-        card.onclick = () => {
-          // Optional: Store memoryId to support "Back" from photo view
-          sessionStorage.setItem("currentMemoryId", memoryId);
-          window.location.href = `show_photos.html?episodeId=${episode.episodeId}`;
-        };
+          // ✅ Add click handler to open show_photos.html
+          card.style.cursor = "pointer";
+          card.onclick = () => {
+            // Optional: Store memoryId to support "Back" from photo view
+            sessionStorage.setItem("currentMemoryId", memoryId);
+            window.location.href = `show_photos.html?episodeId=${episode.episodeId}`;
+          };
 
-        container.appendChild(card);
-
+          container.appendChild(card);
         });
       })
       .catch(err => {
-        document.getElementById("message").textContent = "Error: " + err.message;
+        showMessage("Error: " + err.message, "error");
       });
+    }
+
+    function showMessage(text, type = "info") {
+      const messageEl = document.getElementById("message");
+      messageEl.innerHTML = `
+        <div class="loading-message">
+          <span class="material-icons">${type === "error" ? "error" : "info"}</span>
+          ${text}
+        </div>
+      `;
+      messageEl.className = `message ${type === "error" ? "error-message" : ""}`;
+      messageEl.style.display = "block";
     }
 
     window.onload = fetchEpisodes;

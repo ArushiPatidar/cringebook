@@ -2,237 +2,408 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>User Profile</title>
+    <title>User Profile - CringeBook</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
+        /* Material Design 3 Color Scheme and Components */
+        :root {
+          /* Material Design 3 Color Tokens */
+          --md-primary: #3f51b5;
+          --md-primary-dark: #303f9f;
+          --md-primary-light: #5c6bc0;
+          --md-secondary: #03dac6;
+          --md-surface: #ffffff;
+          --md-surface-variant: #f5f5f5;
+          --md-background: #fafafa;
+          --md-error: #b00020;
+          --md-on-primary: #ffffff;
+          --md-on-surface: #000000;
+          --md-on-background: #000000;
+          --md-outline: #e0e0e0;
+          --md-outline-variant: #f0f0f0;
+          
+          /* Material Design 3 Elevation */
+          --md-elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24);
+          --md-elevation-2: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23);
+          --md-elevation-3: 0px 10px 20px rgba(0, 0, 0, 0.19), 0px 6px 6px rgba(0, 0, 0, 0.23);
+          
+          /* Material Design 3 Border Radius */
+          --md-border-radius-small: 8px;
+          --md-border-radius-medium: 12px;
+          --md-border-radius-large: 16px;
+          --md-border-radius-extra-large: 24px;
+        }
+
+        /* Base styles */
+        * {
+          box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background: #f0f2f5;
-            margin: 0;
-            padding: 0;
+          font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background-color: var(--md-background);
+          color: var(--md-on-background);
+          margin: 0;
+          padding: 0;
+          line-height: 1.5;
         }
 
-        .topbar {
-            background-color: #3f51b5;
-            color: white;
-            padding: 15px 20px;
-            font-size: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* Material Design Top App Bar */
+        .md-top-app-bar {
+          background-color: var(--md-primary);
+          color: var(--md-on-primary);
+          padding: 16px 24px;
+          box-shadow: var(--md-elevation-1);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          position: sticky;
+          top: 0;
+          z-index: 1000;
         }
 
-        .topbar .title {
-            font-weight: bold;
+        .md-top-app-bar-title {
+          font-size: 22px;
+          font-weight: 500;
+          letter-spacing: 0.15px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
 
-        .profile-container {
-            max-width: 800px;
-            margin: 20px auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            overflow: hidden;
+        .md-top-app-bar-actions {
+          display: flex;
+          gap: 8px;
+          align-items: center;
         }
 
+        /* Material Design Buttons */
+        .md-button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 10px 16px;
+          border: none;
+          border-radius: var(--md-border-radius-large);
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-decoration: none;
+          min-height: 40px;
+          gap: 4px;
+        }
+
+        .md-button-filled {
+          background-color: var(--md-primary);
+          color: var(--md-on-primary);
+        }
+
+        .md-button-filled:hover {
+          background-color: var(--md-primary-dark);
+          box-shadow: var(--md-elevation-1);
+        }
+
+        .md-button-outlined {
+          background-color: transparent;
+          color: var(--md-primary);
+          border: 1px solid var(--md-primary);
+        }
+
+        .md-button-outlined:hover {
+          background-color: rgba(63, 81, 181, 0.08);
+        }
+
+        .md-button-text {
+          background-color: transparent;
+          color: var(--md-on-primary);
+        }
+
+        .md-button-text:hover {
+          background-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .md-button-success {
+          background-color: #4caf50;
+          color: white;
+        }
+
+        .md-button-warning {
+          background-color: #ff9800;
+          color: white;
+        }
+
+        .md-button-secondary {
+          background-color: var(--md-secondary);
+          color: var(--md-on-primary);
+        }
+
+        /* Material Design Cards */
+        .md-card {
+          background-color: var(--md-surface);
+          border-radius: var(--md-border-radius-medium);
+          box-shadow: var(--md-elevation-1);
+          overflow: hidden;
+          transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .md-card:hover {
+          box-shadow: var(--md-elevation-2);
+          transform: translateY(-2px);
+        }
+
+        .md-card-clickable {
+          cursor: pointer;
+        }
+
+        .md-card-content {
+          padding: 24px;
+        }
+
+        /* Layout */
+        .md-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 24px;
+        }
+
+        .md-grid {
+          display: grid;
+          gap: 24px;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+
+        /* Profile specific styles */
         .profile-header {
-            background: linear-gradient(135deg, #3f51b5, #5c6bc0);
-            color: white;
-            padding: 30px;
-            text-align: center;
+          background: linear-gradient(135deg, var(--md-primary), var(--md-primary-light));
+          color: var(--md-on-primary);
+          padding: 48px 24px;
+          text-align: center;
+          border-radius: var(--md-border-radius-large) var(--md-border-radius-large) 0 0;
+        }
+
+        .profile-avatar {
+          width: 120px;
+          height: 120px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 16px;
+          font-size: 48px;
+          color: var(--md-on-primary);
         }
 
         .profile-name {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 10px;
+          font-size: 32px;
+          font-weight: 400;
+          margin-bottom: 8px;
         }
 
         .profile-username {
-            font-size: 16px;
-            opacity: 0.9;
-            margin-bottom: 20px;
+          font-size: 16px;
+          opacity: 0.8;
+          margin-bottom: 24px;
         }
 
         .profile-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .action-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .send-request-btn {
-            background-color: #4caf50;
-            color: white;
-        }
-
-        .send-request-btn:hover {
-            background-color: #45a049;
-        }
-
-        .pending-btn {
-            background-color: #ff9800;
-            color: white;
-            cursor: not-allowed;
-        }
-
-        .friends-btn {
-            background-color: #2196f3;
-            color: white;
-        }
-
-        .profile-content {
-            padding: 30px;
+          display: flex;
+          gap: 12px;
+          justify-content: center;
+          flex-wrap: wrap;
         }
 
         .profile-info {
-            margin-bottom: 30px;
+          padding: 24px;
         }
 
         .info-item {
-            display: flex;
-            margin-bottom: 15px;
-            align-items: center;
+          display: flex;
+          margin-bottom: 16px;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .info-icon {
+          width: 24px;
+          color: var(--md-primary);
         }
 
         .info-label {
-            font-weight: bold;
-            width: 120px;
-            color: #666;
+          font-weight: 500;
+          min-width: 80px;
+          color: #666;
         }
 
         .info-value {
-            flex-grow: 1;
-        }
-
-        .private-message {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-            background: #f9f9f9;
-            border-radius: 8px;
-        }
-
-        .private-message h3 {
-            margin-bottom: 10px;
-        }
-
-        .memories-section {
-            margin-top: 30px;
+          flex-grow: 1;
+          font-weight: 400;
         }
 
         .section-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #333;
-            border-bottom: 2px solid #3f51b5;
-            padding-bottom: 10px;
-        }
-
-        .memories-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+          font-size: 24px;
+          font-weight: 500;
+          margin: 32px 0 24px;
+          color: var(--md-on-background);
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
 
         .memory-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            overflow: hidden;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: transform 0.2s;
+          background: var(--md-surface);
+          border-radius: var(--md-border-radius-medium);
+          box-shadow: var(--md-elevation-1);
+          overflow: hidden;
+          cursor: pointer;
+          transition: all 0.2s ease;
         }
 
         .memory-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+          box-shadow: var(--md-elevation-2);
+          transform: translateY(-4px);
         }
 
         .memory-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background: #f0f0f0;
+          width: 100%;
+          height: 200px;
+          object-fit: cover;
+          background: var(--md-surface-variant);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #666;
+          font-size: 24px;
         }
 
         .memory-content {
-            padding: 15px;
+          padding: 16px;
         }
 
         .memory-title {
-            font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 8px;
-            color: #333;
+          font-weight: 500;
+          font-size: 16px;
+          margin-bottom: 8px;
+          color: var(--md-on-surface);
         }
 
         .memory-description {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+          color: #666;
+          font-size: 14px;
+          line-height: 1.4;
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        .private-message {
+          text-align: center;
+          padding: 48px 24px;
+          color: #666;
+          background: var(--md-surface-variant);
+          border-radius: var(--md-border-radius-medium);
+        }
+
+        .private-message h3 {
+          margin-bottom: 16px;
+          color: var(--md-on-surface);
         }
 
         .no-memories {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-            background: #f9f9f9;
-            border-radius: 8px;
+          text-align: center;
+          padding: 48px 24px;
+          color: #666;
+          background: var(--md-surface-variant);
+          border-radius: var(--md-border-radius-medium);
         }
 
-        .back-btn {
-            background-color: #666;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .back-btn:hover {
-            background-color: #555;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 50px;
-            color: #666;
+        .loading, .error {
+          text-align: center;
+          padding: 48px 24px;
+          color: #666;
         }
 
         .error {
-            text-align: center;
-            padding: 50px;
-            color: #f44336;
+          color: var(--md-error);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+          .md-container {
+            padding: 16px;
+          }
+          
+          .md-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+          
+          .md-top-app-bar {
+            padding: 12px 16px;
+          }
+          
+          .md-top-app-bar-title {
+            font-size: 20px;
+          }
+          
+          .profile-header {
+            padding: 32px 16px;
+          }
+          
+          .profile-name {
+            font-size: 28px;
+          }
+          
+          .profile-actions {
+            flex-direction: column;
+            align-items: center;
+          }
+          
+          .md-button {
+            min-width: 200px;
+          }
         }
     </style>
 </head>
 <body>
-    <div class="topbar">
-        <div class="title">CringeBook - User Profile</div>
-        <div>
-            <a href="search_users.html" class="back-btn">Back to Search</a>
+    <div class="md-top-app-bar">
+        <div class="md-top-app-bar-title">
+            <span class="material-icons">person</span>
+            User Profile
+        </div>
+        <div class="md-top-app-bar-actions">
+            <a href="search_users.html" class="md-button md-button-text">
+                <span class="material-icons">search</span>
+                Find Users
+            </a>
+            <a href="friends_list.html" class="md-button md-button-text">
+                <span class="material-icons">people</span>
+                Friends
+            </a>
+            <a href="show_memory.html" class="md-button md-button-text">
+                <span class="material-icons">photo_library</span>
+                My Memories
+            </a>
         </div>
     </div>
 
-    <div class="profile-container">
-        <div id="loadingMessage" class="loading">Loading profile...</div>
-        <div id="errorMessage" class="error" style="display: none;">Error loading profile</div>
+    <div class="md-container">
+        <div id="loadingMessage" class="loading">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span class="material-icons">hourglass_empty</span>
+                Loading profile...
+            </div>
+        </div>
+        <div id="errorMessage" class="error" style="display: none;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span class="material-icons">error</span>
+                <span id="errorText">Error loading profile</span>
+            </div>
+        </div>
         <div id="profileContent" style="display: none;">
             <!-- Profile content will be populated by JavaScript -->
         </div>
@@ -305,11 +476,11 @@
 
             let actionButtons = '';
             if (areFriends) {
-                actionButtons = '<button class="action-btn friends-btn">✓ Friends</button>';
+                actionButtons = '<button class="md-button md-button-success"><span class="material-icons">check</span>Friends</button>';
             } else if (hasPendingRequest) {
-                actionButtons = '<button class="action-btn pending-btn">Request Pending</button>';
+                actionButtons = '<button class="md-button md-button-warning"><span class="material-icons">schedule</span>Request Pending</button>';
             } else if (canSendRequest) {
-                actionButtons = '<button class="action-btn send-request-btn" onclick="sendFriendRequest()">Send Friend Request</button>';
+                actionButtons = '<button class="md-button md-button-filled" onclick="sendFriendRequest()"><span class="material-icons">person_add</span>Send Friend Request</button>';
             }
 
             let profileInfo = '';
@@ -317,40 +488,55 @@
                 profileInfo = `
                     <div class="profile-info">
                         <div class="info-item">
+                            <span class="material-icons info-icon">email</span>
                             <div class="info-label">Email:</div>
                             <div class="info-value">${escapeHtml(user.email)}</div>
                         </div>
                         <div class="info-item">
+                            <span class="material-icons info-icon">phone</span>
                             <div class="info-label">Phone:</div>
                             <div class="info-value">${escapeHtml(user.phone || 'Not provided')}</div>
                         </div>
                     </div>
-                    <div class="memories-section">
-                        <div class="section-title">📸 ${escapeHtml(user.name)}'s Memories</div>
-                        <div id="memoriesContainer">
-                            <div class="loading">Loading memories...</div>
+                    <div class="section-title">
+                        <span class="material-icons">photo_library</span>
+                        ${escapeHtml(user.name)}'s Memories
+                    </div>
+                    <div id="memoriesContainer">
+                        <div class="loading">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                <span class="material-icons">hourglass_empty</span>
+                                Loading memories...
+                            </div>
                         </div>
                     </div>
                 `;
             } else {
                 profileInfo = `
                     <div class="private-message">
+                        <span class="material-icons" style="font-size: 48px; color: #ccc; margin-bottom: 16px;">lock</span>
                         <h3>Private Profile</h3>
                         <p>You need to be friends with ${escapeHtml(user.name)} to view their full profile and memories.</p>
                     </div>
                 `;
             }
 
+            // Get user's initials for avatar
+            const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+
             profileContent.innerHTML = `
-                <div class="profile-header">
-                    <div class="profile-name">${escapeHtml(user.name)}</div>
-                    <div class="profile-username">@${escapeHtml(user.userName)}</div>
-                    <div class="profile-actions">
-                        ${actionButtons}
+                <div class="md-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">${initials}</div>
+                        <div class="profile-name">${escapeHtml(user.name)}</div>
+                        <div class="profile-username">@${escapeHtml(user.userName)}</div>
+                        <div class="profile-actions">
+                            ${actionButtons}
+                        </div>
                     </div>
-                </div>
-                <div class="profile-content">
-                    ${profileInfo}
+                    <div class="md-card-content">
+                        ${profileInfo}
+                    </div>
                 </div>
             `;
 
@@ -392,6 +578,7 @@
             if (!memories || memories.length === 0) {
                 memoriesContainer.innerHTML = `
                     <div class="no-memories">
+                        <span class="material-icons" style="font-size: 48px; color: #ccc; margin-bottom: 16px;">photo_library</span>
                         <h3>No memories yet</h3>
                         <p>${escapeHtml(profileData.user.name)} hasn't shared any memories yet.</p>
                     </div>
@@ -400,10 +587,10 @@
             }
 
             const memoriesHtml = memories.map(memory => `
-                <div class="memory-card" onclick="viewMemoryEpisodes(${memory.memoryId})">
+                <div class="memory-card md-card-clickable" onclick="viewMemoryEpisodes(${memory.memoryId})">
                     ${memory.photo ? 
                         `<img src="/get_photo_from_url?url=${encodeURIComponent(memory.photo)}" alt="Memory photo" class="memory-image" onerror="this.style.display='none'">` : 
-                        '<div class="memory-image" style="display: flex; align-items: center; justify-content: center; background: #f0f0f0; color: #666;">📸 No Image</div>'
+                        '<div class="memory-image"><span class="material-icons">photo</span></div>'
                     }
                     <div class="memory-content">
                         <div class="memory-title">${escapeHtml(memory.title)}</div>
@@ -413,7 +600,7 @@
             `).join('');
 
             memoriesContainer.innerHTML = `
-                <div class="memories-grid">
+                <div class="md-grid">
                     ${memoriesHtml}
                 </div>
             `;
@@ -453,7 +640,7 @@
         function showError(message) {
             document.getElementById('loadingMessage').style.display = 'none';
             const errorMessage = document.getElementById('errorMessage');
-            errorMessage.textContent = message;
+            document.getElementById('errorText').textContent = message;
             errorMessage.style.display = 'block';
         }
 
