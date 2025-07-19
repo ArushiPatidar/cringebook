@@ -5,6 +5,7 @@
     <title>User Profile - CringeBook</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="notification-service.js"></script>
     <style>
         /* Material Design 3 Color Scheme and Components */
         :root {
@@ -453,6 +454,27 @@
                 return;
             }
 
+            // Check if user is trying to view their own profile
+            try {
+                const currentUserResponse = await fetch('/api/users/current-user-id', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': token
+                    }
+                });
+
+                if (currentUserResponse.ok) {
+                    const currentUserData = await currentUserResponse.json();
+                    if (currentUserData.userId == userId) {
+                        // Redirect to main profile page if user is viewing their own profile
+                        window.location.href = 'profile.html';
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking current user:', error);
+            }
+
             try {
                 const response = await fetch(`/api/users/profile/${userId}`, {
                     method: 'GET',
@@ -889,18 +911,53 @@
 
         function createCommentElement(comment, prefix = '') {
             const commentDiv = document.createElement('div');
-            commentDiv.style.cssText = 'margin-bottom: 8px; padding: 8px; background: var(--md-surface-variant); border-radius: 8px;';
+            commentDiv.style.cssText = 'margin-bottom: 8px; padding: 12px; background: var(--md-surface-variant); border-radius: 12px; display: flex; gap: 12px; align-items: flex-start;';
             
             const prefixHtml = prefix ? `<span style="color: var(--md-primary); font-size: 12px; font-weight: 500;">${prefix}</span><br>` : '';
             
+            // Profile picture on the left
+            const profilePicHtml = comment.userProfilePicture 
+                ? `<img src="/uploads/profile_pictures/${comment.userProfilePicture}" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNlMGUwZTAiLz4KPHA+PC9wPgo8L3N2Zz4='">`
+                : '<div style="width: 32px; height: 32px; border-radius: 50%; background: var(--md-outline); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-icons" style="font-size: 16px; color: var(--md-on-surface);">person</span></div>';
+            
+            // Episode/Photo image on the right (if available)
+            let rightImageHtml = '';
+            if (comment.photoUrl) {
+                rightImageHtml = `<img src="${comment.photoUrl}" alt="Photo" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover; cursor: pointer; flex-shrink: 0;" onclick="openPhotoFromProfile(${comment.photoId || 'null'}, '${comment.photoUrl}', event)">`;
+            } else if (comment.episodePhoto) {
+                rightImageHtml = `<img src="${comment.episodePhoto}" alt="Episode" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover; cursor: pointer; flex-shrink: 0;" onclick="openEpisodeFromProfile(${comment.episodeId || 'null'}, event)">`;
+            }
+            
             commentDiv.innerHTML = `
-                ${prefixHtml}
-                <div style="font-weight: 500; font-size: 14px; margin-bottom: 4px; color: var(--md-primary); cursor: pointer;" onclick="viewUserProfile(${comment.userId}, event)">
-                    ${escapeHtml(comment.userFullName || comment.userName || 'Unknown User')}
+                ${profilePicHtml}
+                <div style="flex: 1; min-width: 0;">
+                    ${prefixHtml}
+                    <div style="font-weight: 500; font-size: 14px; margin-bottom: 4px; color: var(--md-primary); cursor: pointer;" onclick="viewUserProfile(${comment.userId}, event)">
+                        ${escapeHtml(comment.userFullName || comment.userName || 'Unknown User')}
+                    </div>
+                    <div style="font-size: 14px; color: var(--md-on-surface);">${escapeHtml(comment.commentText)}</div>
                 </div>
-                <div style="font-size: 14px; color: var(--md-on-surface);">${escapeHtml(comment.commentText)}</div>
+                ${rightImageHtml}
             `;
             return commentDiv;
+        }
+
+        function openPhotoFromProfile(photoId, photoUrl, event) {
+            event.stopPropagation();
+            event.preventDefault();
+            if (photoId) {
+                window.open(photoUrl, '_blank');
+            } else {
+                window.open(photoUrl, '_blank');
+            }
+        }
+
+        function openEpisodeFromProfile(episodeId, event) {
+            event.stopPropagation();
+            event.preventDefault();
+            if (episodeId) {
+                window.location.href = `show_photos.html?episodeId=${episodeId}`;
+            }
         }
 
         function viewUserProfile(clickedUserId, event) {

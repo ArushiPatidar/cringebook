@@ -224,9 +224,11 @@ public class InteractionController {
                 if (user != null) {
                     enrichedComment.put("userName", user.getUserName());
                     enrichedComment.put("userFullName", user.getName());
+                    enrichedComment.put("userProfilePicture", user.getProfilePicture());
                 } else {
                     enrichedComment.put("userName", "unknown");
                     enrichedComment.put("userFullName", "Unknown User");
+                    enrichedComment.put("userProfilePicture", null);
                 }
                 
                 enrichedComments.add(enrichedComment);
@@ -268,6 +270,7 @@ public class InteractionController {
                         Map<String, Object> enriched = createEnrichedComment(comment);
                         enriched.put("episodeTitle", episode.getTitle());
                         enriched.put("episodePhoto", episode.getPhoto());
+                        enriched.put("episodeId", episode.getEpisodeId());
                         episodeComments.add(enriched);
                     }
                     
@@ -280,6 +283,7 @@ public class InteractionController {
                             enriched.put("episodeTitle", episode.getTitle());
                             enriched.put("photoUrl", photo.getPhotoUrl());
                             enriched.put("photoCaption", ""); // Photo entity doesn't have caption
+                            enriched.put("photoId", photo.getPhoto_id());
                             episodeComments.add(enriched);
                         }
                     }
@@ -300,6 +304,7 @@ public class InteractionController {
                         Map<String, Object> enriched = createEnrichedComment(comment);
                         enriched.put("photoUrl", photo.getPhotoUrl());
                         enriched.put("photoCaption", ""); // Photo entity doesn't have caption
+                        enriched.put("photoId", photo.getPhoto_id());
                         photoComments.add(enriched);
                     }
                 }
@@ -338,9 +343,11 @@ public class InteractionController {
         if (user != null) {
             enrichedComment.put("userName", user.getUserName());
             enrichedComment.put("userFullName", user.getName());
+            enrichedComment.put("userProfilePicture", user.getProfilePicture());
         } else {
             enrichedComment.put("userName", "unknown");
             enrichedComment.put("userFullName", "Unknown User");
+            enrichedComment.put("userProfilePicture", null);
         }
         
         return enrichedComment;

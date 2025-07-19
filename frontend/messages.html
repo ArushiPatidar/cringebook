@@ -5,6 +5,7 @@
     <title>Messages - CringeBook</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="notification-service.js"></script>
     <style>
         /* Material Design 3 Color Scheme and Components */
         :root {
@@ -282,9 +283,15 @@
 
         .message-time {
           font-size: 12px;
-          color: #666;
+          color: var(--md-on-surface);
+          opacity: 0.7;
           margin-top: 4px;
           text-align: right;
+        }
+
+        .message.sent .message-time {
+          color: var(--md-on-primary);
+          opacity: 0.8;
         }
 
         .message.received .message-time {

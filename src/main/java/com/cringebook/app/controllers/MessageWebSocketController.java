@@ -99,6 +99,15 @@ public class MessageWebSocketController extends TextWebSocketHandler {
             if (receiverSession != null && receiverSession.isOpen()) {
                 try {
                     receiverSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(realTimeMessage)));
+                    
+                    // Also send a notification popup for the message
+                    Map<String, Object> notification = new HashMap<>();
+                    notification.put("senderId", senderId);
+                    notification.put("senderName", sender.getName());
+                    notification.put("messageText", messageText);
+                    notification.put("timestamp", savedMessage.getSentAt().toString());
+                    
+                    sendNotification(receiverId, "new_message", notification);
                 } catch (IOException e) {
                     System.err.println("Failed to send message to receiver: " + e.getMessage());
                 }
@@ -140,5 +149,27 @@ public class MessageWebSocketController extends TextWebSocketHandler {
                 System.err.println("Failed to send read notification: " + e.getMessage());
             }
         }
+    }
+
+    // Method to send notifications to users (can be called from other controllers)
+    public void sendNotification(int userId, String notificationType, Map<String, Object> notificationData) {
+        WebSocketSession session = userSessions.get(String.valueOf(userId));
+        if (session != null && session.isOpen()) {
+            try {
+                Map<String, Object> notification = new HashMap<>();
+                notification.put("type", "notification");
+                notification.put("notificationType", notificationType);
+                notification.putAll(notificationData);
+                
+                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(notification)));
+            } catch (IOException e) {
+                System.err.println("Failed to send notification to user " + userId + ": " + e.getMessage());
+            }
+        }
+    }
+
+    // Method to get connected users (for debugging/monitoring)
+    public Set<String> getConnectedUsers() {
+        return userSessions.keySet();
     }
 }

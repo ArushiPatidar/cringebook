@@ -1,15 +1,20 @@
 package com.cringebook.app.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class VideoCallController implements WebSocketHandler {
+
+    @Autowired
+    private MessageWebSocketController messageWebSocketController;
 
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
     private final Map<String, String> userCallMap = new ConcurrentHashMap<>(); // userId -> sessionId
@@ -89,6 +94,15 @@ public class VideoCallController implements WebSocketHandler {
                     "fromUserName", data.get("fromUserName")
                 );
                 sendMessage(targetSession, callRequest);
+                
+                // Send notification popup for video call
+                if (messageWebSocketController != null) {
+                    Map<String, Object> notification = new HashMap<>();
+                    notification.put("fromUserId", fromUserId);
+                    notification.put("fromUserName", data.get("fromUserName"));
+                    
+                    messageWebSocketController.sendNotification(Integer.parseInt(toUserId), "video_call", notification);
+                }
             }
         }
     }
