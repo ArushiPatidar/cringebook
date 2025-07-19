@@ -461,6 +461,9 @@
                     toUserId: friendId,
                     fromUserName: currentUserName || 'User'
                 });
+                
+                // Log call request
+                logCallEvent('call-requested', friendId, friendName);
             }
         };
         
@@ -589,6 +592,9 @@
     function startCallTimer() {
         callStartTime = new Date();
         callDurationInterval = setInterval(updateCallDuration, 1000);
+        
+        // Log call started
+        logCallEvent('call-started', friendId, friendName);
     }
 
     function updateCallDuration() {
@@ -645,6 +651,10 @@
     }
 
     function hangUp() {
+        // Log call ended with duration if call was active
+        const duration = getCallDuration();
+        logCallEvent('call-ended', friendId, friendName, duration);
+        
         // Send end call message
         if (websocket && websocket.readyState === WebSocket.OPEN) {
             sendSignalingMessage({
@@ -671,6 +681,64 @@
         }
         
         window.close();
+    }
+
+    function getCallDuration() {
+        if (callStartTime) {
+            const now = new Date();
+            return Math.floor((now - callStartTime) / 1000);
+        }
+        return 0;
+    }
+
+    function formatDuration(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    function logCallEvent(eventType, friendId, friendName, duration = null) {
+        // Create call log message
+        const callMessages = {
+            'call-requested': `📞 Video call requested`,
+            'call-started': `📞 Video call started`,
+            'call-ended': duration ? `📞 Video call ended (${formatDuration(duration)})` : `📞 Video call ended`
+        };
+        
+        const messageText = callMessages[eventType] || `📞 Video call ${eventType}`;
+        
+        // Send call log as a special message
+        sendCallLog(friendId, messageText);
+    }
+
+    function sendCallLog(friendId, messageText) {
+        const token = getTokenFromCookie();
+        if (!token) return;
+
+        const formData = new FormData();
+        formData.append('receiverId', friendId);
+        formData.append('messageText', messageText);
+        formData.append('messageType', 'call_log');
+
+        fetch('/send-message', {
+            method: 'POST',
+            headers: {
+                'Authorization': token
+            },
+            body: formData
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Failed to log call');
+            return res.json();
+        })
+        .catch(err => {
+            console.error('Error logging call event:', err);
+        });
+    }
+
+    function getTokenFromCookie() {
+        const match = document.cookie.match(/(^| )Authorization=([^;]+)/);
+        return match ? decodeURIComponent(match[2]) : null;
     }
 
     function showError(message) {

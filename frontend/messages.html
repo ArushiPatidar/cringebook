@@ -299,6 +299,29 @@
           text-align: left;
         }
 
+        /* Call log message styling */
+        .message.call-log {
+          align-self: center;
+          max-width: 80%;
+        }
+
+        .call-log-content {
+          background: var(--md-surface);
+          border: 1px solid var(--md-outline);
+          padding: 8px 16px;
+          border-radius: var(--md-border-radius-medium);
+          text-align: center;
+          font-size: 13px;
+          color: var(--md-on-surface);
+          opacity: 0.8;
+        }
+
+        .call-log-content .message-time {
+          text-align: center;
+          font-size: 11px;
+          margin-top: 2px;
+        }
+
         .chat-input {
           padding: 20px;
           border-top: 1px solid var(--md-outline-variant);
@@ -636,14 +659,28 @@
             const isSent = message.senderId === currentUserId;
             const time = formatTime(message.sentAt);
             
-            html += `
-                <div class="message ${isSent ? 'sent' : 'received'}">
-                    <div class="message-content">
-                        ${escapeHtml(message.messageText)}
-                        <div class="message-time">${time}</div>
+            // Handle different message types
+            if (message.messageType === 'call_log') {
+                // Call log message - center aligned with different styling
+                html += `
+                    <div class="message call-log">
+                        <div class="call-log-content">
+                            ${escapeHtml(message.messageText)}
+                            <div class="message-time">${time}</div>
+                        </div>
                     </div>
-                </div>
-            `;
+                `;
+            } else {
+                // Regular text message
+                html += `
+                    <div class="message ${isSent ? 'sent' : 'received'}">
+                        <div class="message-content">
+                            ${escapeHtml(message.messageText)}
+                            <div class="message-time">${time}</div>
+                        </div>
+                    </div>
+                `;
+            }
         });
         
         container.innerHTML = html;
