@@ -794,71 +794,42 @@
     function createNestedCommentElement(comment) {
       const commentDiv = document.createElement('div');
       commentDiv.className = 'nested-comment-item';
+      commentDiv.style.cssText = 'display: flex; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--md-outline-variant); font-size: 11px; align-items: flex-start;';
       
-      // Create photo thumbnail
-      const thumbnail = document.createElement('div');
-      thumbnail.className = 'comment-thumbnail';
+      // Profile picture on the left
+      const profilePicHtml = comment.userProfilePicture 
+        ? `<img src="/uploads/profile_pictures/${comment.userProfilePicture}" alt="Profile" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgiIGhlaWdodD0iMjgiIHZpZXdCb3g9IjAgMCAyOCAyOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTQiIGN5PSIxNCIgcj0iMTQiIGZpbGw9IiNlMGUwZTAiLz4KPHA+PC9wPgo8L3N2Zz4='">`
+        : '<div style="width: 28px; height: 28px; border-radius: 50%; background: var(--md-outline); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-icons" style="font-size: 14px; color: var(--md-on-surface);">person</span></div>';
+      
+      // Photo thumbnail on the right (if available)
+      let rightImageHtml = '';
       if (comment.photoUrl) {
-        const img = document.createElement('img');
-        img.src = `/get_photo_from_url?url=${encodeURIComponent(comment.photoUrl)}`;
-        img.onerror = () => {
-          thumbnail.innerHTML = '<span class="material-icons">photo</span>';
-        };
-        thumbnail.appendChild(img);
-      } else {
-        thumbnail.innerHTML = '<span class="material-icons">photo</span>';
+        rightImageHtml = `<img src="/get_photo_from_url?url=${encodeURIComponent(comment.photoUrl)}" alt="Photo" style="width: 32px; height: 32px; border-radius: 4px; object-fit: cover; cursor: pointer; flex-shrink: 0;" onclick="showImageFullView('${comment.photoUrl}')">`;
       }
       
-      const contentDiv = document.createElement('div');
-      contentDiv.className = 'nested-comment-content';
-      
-      const header = document.createElement('div');
-      header.className = 'nested-comment-header';
-      
-      const authorSpan = document.createElement('span');
-      authorSpan.className = 'comment-author';
-      authorSpan.style.color = 'var(--md-primary)';
-      authorSpan.style.cursor = 'pointer';
-      authorSpan.textContent = comment.userFullName || 'Unknown User';
-      authorSpan.onclick = (e) => {
-        e.stopPropagation();
-        window.location.href = `user_profile.html?userId=${comment.userId}`;
-      };
-      
-      const sourceSpan = document.createElement('span');
-      sourceSpan.className = 'comment-source';
-      sourceSpan.textContent = '• on photo';
-      
-      header.appendChild(authorSpan);
-      header.appendChild(sourceSpan);
-      
-      const text = document.createElement('div');
-      text.className = 'comment-text';
-      text.textContent = comment.commentText;
-      
-      const actions = document.createElement('div');
-      actions.className = 'comment-actions';
-      
-      const likeBtn = document.createElement('button');
-      likeBtn.className = 'comment-like-btn';
-      likeBtn.innerHTML = `<span class="material-icons">favorite_border</span><span>0</span>`;
-      likeBtn.onclick = () => toggleCommentLike(comment.commentId, likeBtn);
-      
-      const timeSpan = document.createElement('span');
-      timeSpan.textContent = formatTime(comment.createdAt);
-      
-      actions.appendChild(likeBtn);
-      actions.appendChild(timeSpan);
-      
-      contentDiv.appendChild(header);
-      contentDiv.appendChild(text);
-      contentDiv.appendChild(actions);
-      
-      commentDiv.appendChild(thumbnail);
-      commentDiv.appendChild(contentDiv);
+      commentDiv.innerHTML = `
+        ${profilePicHtml}
+        <div style="flex: 1; min-width: 0;">
+          <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px; font-size: 10px;">
+            <span style="font-weight: 500; color: var(--md-primary); cursor: pointer;" onclick="window.location.href='user_profile.html?userId=${comment.userId}'">${comment.userFullName || 'Unknown User'}</span>
+            <span style="color: #666;">• on photo</span>
+          </div>
+          <div style="margin-bottom: 4px; color: var(--md-on-surface);">${comment.commentText}</div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 10px; color: #666;">
+            <button style="background: none; border: none; color: var(--md-primary); cursor: pointer; font-size: 10px; display: flex; align-items: center; gap: 2px;" onclick="toggleCommentLike(${comment.commentId}, this)">
+              <span class="material-icons" style="font-size: 12px;">favorite_border</span><span>0</span>
+            </button>
+            <span>${formatTime(comment.createdAt)}</span>
+          </div>
+        </div>
+        ${rightImageHtml}
+      `;
       
       // Load comment likes
-      loadCommentLikes(comment.commentId, likeBtn);
+      const likeBtn = commentDiv.querySelector('[onclick*="toggleCommentLike"]');
+      if (likeBtn) {
+        loadCommentLikes(comment.commentId, likeBtn);
+      }
       
       return commentDiv;
     }

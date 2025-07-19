@@ -765,9 +765,7 @@
         rightImageHtml = `<img src="/get_photo_from_url?url=${encodeURIComponent(comment.episodePhoto)}" alt="Episode" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; cursor: pointer; flex-shrink: 0;" onclick="openEpisodeInMemory(${comment.episodeId || 'null'}, event)">`;
       }
       
-      const contentDiv = document.createElement('div');
-      contentDiv.style.cssText = 'flex: 1; min-width: 0;';
-      contentDiv.innerHTML = `
+      commentDiv.innerHTML = `
         ${profilePicHtml}
         <div style="flex: 1; min-width: 0;">
           <div style="font-weight: 500; margin-bottom: 2px; color: var(--md-primary); cursor: pointer;" onclick="viewUserProfileFromMemory(${comment.userId}, event)">
@@ -784,7 +782,6 @@
         ${rightImageHtml}
       `;
       
-      commentDiv.innerHTML = contentDiv.innerHTML;
       return commentDiv;
     }
 

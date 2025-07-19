@@ -180,7 +180,7 @@ class NotificationService {
                 this.stopRingtone();
                 window.open(`video_call.html?friendId=${data.fromUserId}&friendName=${encodeURIComponent(data.fromUserName)}`, '_blank');
             },
-            true, // persistent
+            false, // not persistent - auto-dismiss after timeout
             () => {
                 this.stopRingtone(); // decline callback
             }
@@ -253,9 +253,13 @@ class NotificationService {
         }
 
         if (!persistent) {
+            const timeout = type === 'video_call' ? 10000 : 5000; // 10 seconds for video calls, 5 for messages
             setTimeout(() => {
+                if (type === 'video_call') {
+                    this.stopRingtone(); // Stop ringtone when auto-dismissing video calls
+                }
                 this.hideNotificationPopup(popup);
-            }, 5000);
+            }, timeout);
         }
 
         return popup;
