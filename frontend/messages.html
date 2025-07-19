@@ -569,14 +569,20 @@
             const lastMessage = conv.lastMessage;
             const unreadCount = conv.unreadCount || 0;
             
+            // Use profile picture if available, fallback to initials
             const initials = partner.name ? partner.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
+            const avatarHtml = partner.profilePicture 
+                ? `<img src="/uploads/profile_pictures/${partner.profilePicture}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                   <div style="display: none; width: 100%; height: 100%; border-radius: 50%; background: var(--md-primary); color: var(--md-on-primary); align-items: center; justify-content: center; font-size: 18px; font-weight: 500;">${initials}</div>`
+                : `<div style="width: 100%; height: 100%; border-radius: 50%; background: var(--md-primary); color: var(--md-on-primary); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500;">${initials}</div>`;
+            
             const preview = lastMessage ? lastMessage.messageText : 'No messages yet';
             const time = lastMessage ? formatTime(lastMessage.sentAt) : '';
             
             html += `
                 <div class="conversation-item ${currentChatFriendId === partner.userID ? 'active' : ''}" 
                      onclick="openChat(${partner.userID})">
-                    <div class="conversation-avatar">${initials}</div>
+                    <div class="conversation-avatar">${avatarHtml}</div>
                     <div class="conversation-info">
                         <div class="conversation-name">${escapeHtml(partner.name || 'Unknown')}</div>
                         <div class="conversation-preview">${escapeHtml(preview)}</div>
@@ -633,9 +639,23 @@
             const friend = data.friend;
             const messages = data.messages || [];
             
-            // Update chat header
+            // Update chat header with profile picture if available
             const initials = friend.name ? friend.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U';
-            document.getElementById('chatAvatar').textContent = initials;
+            const chatAvatarElement = document.getElementById('chatAvatar');
+            
+            if (friend.profilePicture) {
+                chatAvatarElement.innerHTML = `
+                    <img src="/uploads/profile_pictures/${friend.profilePicture}" alt="Profile" 
+                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" 
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div style="display: none; width: 100%; height: 100%; border-radius: 50%; background: var(--md-primary); color: var(--md-on-primary); align-items: center; justify-content: center; font-size: 18px; font-weight: 500;">${initials}</div>
+                `;
+            } else {
+                chatAvatarElement.innerHTML = `
+                    <div style="width: 100%; height: 100%; border-radius: 50%; background: var(--md-primary); color: var(--md-on-primary); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500;">${initials}</div>
+                `;
+            }
+            
             document.getElementById('chatName').textContent = friend.name || 'Unknown';
             document.getElementById('chatUsername').textContent = '@' + (friend.userName || 'unknown');
             

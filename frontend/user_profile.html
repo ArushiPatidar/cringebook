@@ -563,13 +563,17 @@
                 `;
             }
 
-            // Get user's initials for avatar
+            // Get user's profile picture or fallback to initials
             const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            const avatarHtml = user.profilePicture 
+                ? `<img src="/uploads/profile_pictures/${user.profilePicture}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                   <div style="display: none; width: 100%; height: 100%; border-radius: 50%; background: var(--md-primary); color: var(--md-on-primary); align-items: center; justify-content: center; font-size: 32px; font-weight: 500;">${initials}</div>`
+                : initials;
 
             profileContent.innerHTML = `
                 <div class="md-card">
                     <div class="profile-header">
-                        <div class="profile-avatar">${initials}</div>
+                        <div class="profile-avatar">${avatarHtml}</div>
                         <div class="profile-name">${escapeHtml(user.name)}</div>
                         <div class="profile-username">@${escapeHtml(user.userName)}</div>
                         <div class="profile-actions">

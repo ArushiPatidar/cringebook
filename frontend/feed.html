@@ -245,6 +245,79 @@
           gap: 8px;
         }
 
+        /* Hamburger Menu Styles */
+        .hamburger-menu {
+          display: none;
+          flex-direction: column;
+          cursor: pointer;
+          padding: 8px;
+          margin-left: auto;
+        }
+
+        .hamburger-menu span {
+          width: 24px;
+          height: 2px;
+          background-color: var(--md-on-primary);
+          margin: 3px 0;
+          transition: 0.3s;
+        }
+
+        .mobile-menu {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.5);
+          z-index: 1001;
+        }
+
+        .mobile-menu-content {
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 300px;
+          height: 100%;
+          background-color: var(--md-surface);
+          box-shadow: var(--md-elevation-2);
+          padding: 20px;
+          transform: translateX(100%);
+          transition: transform 0.3s ease;
+        }
+
+        .mobile-menu.active .mobile-menu-content {
+          transform: translateX(0);
+        }
+
+        .mobile-menu-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 30px;
+          padding-bottom: 20px;
+          border-bottom: 1px solid var(--md-outline);
+        }
+
+        .mobile-menu-item {
+          display: flex;
+          align-items: center;
+          padding: 12px 0;
+          text-decoration: none;
+          color: var(--md-on-surface);
+          border-bottom: 1px solid var(--md-outline-variant);
+          transition: background-color 0.2s;
+        }
+
+        .mobile-menu-item:hover {
+          background-color: var(--md-surface-variant);
+        }
+
+        .mobile-menu-item .material-icons {
+          margin-right: 16px;
+          color: var(--md-primary);
+        }
+
         @media (max-width: 768px) {
           .md-container {
             padding: 16px;
@@ -261,6 +334,14 @@
           .memory-card {
             margin-bottom: 16px;
           }
+
+          .md-top-app-bar-actions {
+            display: none;
+          }
+
+          .hamburger-menu {
+            display: flex;
+          }
         }
     </style>
 </head>
@@ -272,6 +353,18 @@
         Feed
     </div>
     <div class="md-top-app-bar-actions">
+        <a href="feed.html" class="md-button md-button-text">
+            <span class="material-icons">dynamic_feed</span>
+            Feed
+        </a>
+        <a href="messages.html" class="md-button md-button-text">
+            <span class="material-icons">chat</span>
+            Messages
+        </a>
+        <a href="profile.html" class="md-button md-button-text">
+            <span class="material-icons">person</span>
+            Profile
+        </a>
         <a href="search_users.html" class="md-button md-button-text">
             <span class="material-icons">search</span>
             Find Friends
@@ -280,9 +373,58 @@
             <span class="material-icons">people</span>
             Friends
         </a>
+        <a href="friend_requests.html" class="md-button md-button-text">
+            <span class="material-icons">mail</span>
+            Requests
+        </a>
         <a href="show_memory.html" class="md-button md-button-text">
-            <span class="material-icons">photo_library</span>
-            My Memories
+            <span class="material-icons">add_box</span>
+            Add Memory
+        </a>
+    </div>
+    <div class="hamburger-menu" onclick="toggleMobileMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+</div>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu" onclick="closeMobileMenu(event)">
+    <div class="mobile-menu-content">
+        <div class="mobile-menu-header">
+            <h3>Menu</h3>
+            <button class="md-button md-button-text" onclick="closeMobileMenu()" style="min-width: auto; padding: 8px;">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <a href="feed.html" class="mobile-menu-item">
+            <span class="material-icons">dynamic_feed</span>
+            Feed
+        </a>
+        <a href="messages.html" class="mobile-menu-item">
+            <span class="material-icons">chat</span>
+            Messages
+        </a>
+        <a href="profile.html" class="mobile-menu-item">
+            <span class="material-icons">person</span>
+            Profile
+        </a>
+        <a href="search_users.html" class="mobile-menu-item">
+            <span class="material-icons">search</span>
+            Find Friends
+        </a>
+        <a href="friends_list.html" class="mobile-menu-item">
+            <span class="material-icons">people</span>
+            Friends
+        </a>
+        <a href="friend_requests.html" class="mobile-menu-item">
+            <span class="material-icons">mail</span>
+            Requests
+        </a>
+        <a href="show_memory.html" class="mobile-menu-item">
+            <span class="material-icons">add_box</span>
+            Add Memory
         </a>
     </div>
 </div>
@@ -369,14 +511,19 @@
             card.style.cursor = "pointer";
             card.onclick = () => viewMemory(memory.memoryId);
 
-            // Get user initials for avatar
+            // Get user profile picture or fallback to initials
             const userInitials = memory.userFullName ? 
                 memory.userFullName.split(' ').map(n => n[0]).join('').toUpperCase() : 
                 memory.userName ? memory.userName.charAt(0).toUpperCase() : 'U';
             
+            const userAvatarHtml = memory.userProfilePicture 
+                ? `<img src="/uploads/profile_pictures/${memory.userProfilePicture}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                   <div style="display: none; width: 100%; height: 100%; border-radius: 50%; background: var(--md-primary); color: var(--md-on-primary); align-items: center; justify-content: center; font-size: 18px; font-weight: 500;">${userInitials}</div>`
+                : `<div style="width: 100%; height: 100%; border-radius: 50%; background: var(--md-primary); color: var(--md-on-primary); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500;">${userInitials}</div>`;
+            
             card.innerHTML = `
                 <div class="memory-header">
-                    <div class="memory-avatar">${userInitials}</div>
+                    <div class="memory-avatar">${userAvatarHtml}</div>
                     <div class="memory-user-info">
                         <div class="memory-user-name" style="cursor: pointer; color: var(--md-primary);" onclick="viewUserProfile(${memory.userId}, event)">${escapeHtml(memory.userFullName || memory.userName || 'Unknown User')}</div>
                         <div class="memory-date" style="cursor: pointer; color: var(--md-primary);" onclick="viewUserProfile(${memory.userId}, event)">@${escapeHtml(memory.userName || 'unknown')}</div>
@@ -725,6 +872,29 @@
     document.getElementById("loadMoreBtn").onclick = () => {
         loadFeed(currentPage + 1, true);
     };
+
+    // Mobile menu functions
+    function toggleMobileMenu() {
+        const mobileMenu = document.getElementById('mobileMenu');
+        mobileMenu.classList.toggle('active');
+        if (mobileMenu.classList.contains('active')) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    }
+
+    function closeMobileMenu(event) {
+        if (event && event.target === event.currentTarget) {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.remove('active');
+            document.body.style.overflow = '';
+        } else if (!event) {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
 </script>
 
 </body>
