@@ -83,9 +83,9 @@ public class AddPhoto {
 
     @GetMapping("/get_photo_from_url")
     public ResponseEntity<byte[]> getPhotoFromUrl(String url) throws IOException {
-
-        System.out.println("path =  " + "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\"+ url);
-        File imgFile = new File("C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + url);
+        String uploadsDir = System.getProperty("user.dir") + "/uploads";
+        System.out.println("path =  " + uploadsDir + "/" + url);
+        File imgFile = new File(uploadsDir + "/" + url);
 
         byte[]  imageByte = Files.readAllBytes(imgFile.toPath());
 
@@ -107,8 +107,13 @@ public class AddPhoto {
             System.out.println("episodeId " + episodeId);
 
             // saving uploaded file to directory
+            String uploadsDir = System.getProperty("user.dir") + "/uploads";
+            java.io.File uploadDir = new java.io.File(uploadsDir);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
 
-            String filepath = "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + uuid + image.getOriginalFilename();
+            String filepath = uploadsDir + "/" + uuid + image.getOriginalFilename();
             image.transferTo(new File(filepath));
 
 

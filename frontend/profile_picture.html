@@ -256,10 +256,28 @@
     }
 
     function loadCurrentProfilePicture() {
-        // For now, we'll just show the default avatar
-        // In a full implementation, you'd fetch the current user's profile picture
-        const currentPic = document.getElementById('currentProfilePic');
-        // This could be enhanced to show the actual current profile picture
+        const token = getTokenFromCookie();
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // Fetch current user profile to get profile picture
+        fetch(`${window.location.protocol}//${window.location.host}/api/users/profile`, {
+            headers: {
+                'Authorization': token
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.user && data.user.profilePicture) {
+                const currentPic = document.getElementById('currentProfilePic');
+                currentPic.innerHTML = `<img src="${window.location.protocol}//${window.location.host}/get_photo_from_url?url=${data.user.profilePicture}" alt="Profile Picture">`;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading profile picture:', error);
+        });
     }
 
     document.getElementById('uploadForm').addEventListener('submit', async function(e) {
@@ -279,12 +297,6 @@
             return;
         }
 
-        // Check file size (limit to 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            showMessage('File size must be less than 5MB', 'error');
-            return;
-        }
-
         // Check file type
         if (!file.type.startsWith('image/')) {
             showMessage('Please select a valid image file', 'error');
@@ -297,7 +309,7 @@
         formData.append('image', file);
 
         try {
-            const response = await fetch('/api/users/profile-picture', {
+            const response = await fetch(`${window.location.protocol}//${window.location.host}/api/users/profile-picture`, {
                 method: 'POST',
                 headers: {
                     'Authorization': token

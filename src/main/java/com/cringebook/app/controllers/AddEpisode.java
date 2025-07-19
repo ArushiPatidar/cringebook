@@ -83,8 +83,13 @@ public class AddEpisode {
     public ResponseEntity<Integer> saveEpisode(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, String photo, String title, String description, Integer memoryId, @RequestParam(value = "image", required = false)MultipartFile image) throws IOException {
         Integer user_id = authentication.getIdFromToken(jwtToken);
         if (image != null && !image.isEmpty()){
+            String uploadsDir = System.getProperty("user.dir") + "/uploads";
+            java.io.File uploadDir = new java.io.File(uploadsDir);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
             String uuid = UUID.randomUUID().toString();
-            String filepath = "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + uuid + image.getOriginalFilename();
+            String filepath = uploadsDir + "/" + uuid + image.getOriginalFilename();
             image.transferTo(new File(filepath));
             photo = uuid + image.getOriginalFilename();
         }
@@ -111,8 +116,13 @@ public class AddEpisode {
     public ResponseEntity<Integer> updateEpisode(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken, String title, String description,String photo, Integer episodeId, MultipartFile image ) throws IOException {
         Integer user_id = authentication.getIdFromToken(jwtToken);
         if (image != null && !image.isEmpty()){
+            String uploadsDir = System.getProperty("user.dir") + "/uploads";
+            java.io.File uploadDir = new java.io.File(uploadsDir);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
             String uuid = UUID.randomUUID().toString();
-            String filepath = "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + uuid + image.getOriginalFilename();
+            String filepath = uploadsDir + "/" + uuid + image.getOriginalFilename();
             image.transferTo(new File(filepath));
             photo = uuid + image.getOriginalFilename();
         }

@@ -171,6 +171,8 @@ public class UserController {
             return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PostMapping("/profile-picture")
     public ResponseEntity<Map<String, Object>> uploadProfilePicture(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken,
             @RequestParam("image") org.springframework.web.multipart.MultipartFile image) {
@@ -185,12 +187,27 @@ public class UserController {
             errorResponse.put("error", "No image file provided");
             return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
         }
+
+        // Validate file type
+        String contentType = image.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Invalid file type. Please upload an image.");
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
         
         try {
+            // Create uploads directory if it doesn't exist
+            String uploadsDir = System.getProperty("user.dir") + "/uploads";
+            java.io.File uploadDir = new java.io.File(uploadsDir);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+            
             // Generate unique filename
             String uuid = java.util.UUID.randomUUID().toString();
             String filename = uuid + "_profile_" + image.getOriginalFilename();
-            String filepath = "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + filename;
+            String filepath = uploadsDir + "/" + filename;
             
             // Save the file
             image.transferTo(new java.io.File(filepath));
