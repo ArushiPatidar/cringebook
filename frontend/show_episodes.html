@@ -317,6 +317,91 @@
             gap: 4px;
           }
         }
+
+        /* Nested Comments Styles */
+        .comments-title {
+          font-weight: 500;
+          font-size: 12px;
+          margin-bottom: 8px;
+          color: var(--md-primary);
+        }
+
+        .nested-toggle {
+          margin-top: 12px;
+          padding: 8px;
+          background-color: var(--md-surface-variant);
+          border-radius: var(--md-border-radius-small);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          font-weight: 500;
+          color: #666;
+          transition: background-color 0.2s ease;
+        }
+
+        .nested-toggle:hover {
+          background-color: #e0e0e0;
+        }
+
+        .nested-comments-container {
+          margin-top: 8px;
+          padding-left: 16px;
+          border-left: 2px solid var(--md-outline-variant);
+        }
+
+        .nested-comment-item {
+          display: flex;
+          gap: 8px;
+          padding: 8px 0;
+          border-bottom: 1px solid var(--md-outline-variant);
+          font-size: 11px;
+        }
+
+        .comment-thumbnail {
+          width: 32px;
+          height: 32px;
+          border-radius: var(--md-border-radius-small);
+          overflow: hidden;
+          flex-shrink: 0;
+          background-color: var(--md-surface-variant);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .comment-thumbnail img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .comment-thumbnail .material-icons {
+          font-size: 14px;
+          color: #666;
+        }
+
+        .nested-comment-content {
+          flex: 1;
+        }
+
+        .nested-comment-header {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          margin-bottom: 2px;
+          font-size: 10px;
+        }
+
+        .nested-comment-header .comment-author {
+          font-weight: 500;
+          color: var(--md-on-surface);
+        }
+
+        .nested-comment-header .comment-source {
+          color: #666;
+        }
     </style>
 </head>
 <body>
@@ -567,7 +652,12 @@
         return;
       }
 
-      fetch(`/comments?targetType=${targetType}&targetId=${targetId}`, {
+      // Use nested-comments endpoint for episodes to get photo thumbnails
+      const endpoint = targetType === 'episode' 
+        ? `/nested-comments?targetType=${targetType}&targetId=${targetId}`
+        : `/comments?targetType=${targetType}&targetId=${targetId}`;
+
+      fetch(endpoint, {
         headers: { 'Authorization': token }
       })
       .then(res => res.json())
@@ -605,12 +695,60 @@
         inputArea.appendChild(submitBtn);
         commentsSection.appendChild(inputArea);
         
-        // Add existing comments
-        const comments = data.comments || [];
-        comments.forEach(comment => {
-          const commentDiv = createCommentElement(comment);
-          commentsSection.appendChild(commentDiv);
-        });
+        // Handle both nested and regular comment data
+        if (data.directComments && data.nestedComments) {
+          // Nested comments structure for episodes
+          
+          // Add direct comments section
+          if (data.directComments.length > 0) {
+            const directTitle = document.createElement('div');
+            directTitle.className = 'comments-title';
+            directTitle.textContent = `Direct Comments (${data.directComments.length})`;
+            commentsSection.appendChild(directTitle);
+            
+            data.directComments.forEach(comment => {
+              const commentDiv = createCommentElement(comment);
+              commentsSection.appendChild(commentDiv);
+            });
+          }
+          
+          // Add nested comments section with toggle
+          if (data.nestedComments.length > 0) {
+            const nestedToggle = document.createElement('div');
+            nestedToggle.className = 'nested-toggle';
+            nestedToggle.innerHTML = `
+              <span class="material-icons">expand_more</span>
+              <span>Comments from photos (${data.nestedComments.length})</span>
+            `;
+            
+            const nestedContainer = document.createElement('div');
+            nestedContainer.className = 'nested-comments-container';
+            nestedContainer.style.display = 'none';
+            
+            data.nestedComments.forEach(comment => {
+              const commentDiv = createNestedCommentElement(comment);
+              nestedContainer.appendChild(commentDiv);
+            });
+            
+            // Toggle functionality
+            let isExpanded = false;
+            nestedToggle.onclick = () => {
+              isExpanded = !isExpanded;
+              nestedContainer.style.display = isExpanded ? 'block' : 'none';
+              nestedToggle.querySelector('.material-icons').textContent = isExpanded ? 'expand_less' : 'expand_more';
+            };
+            
+            commentsSection.appendChild(nestedToggle);
+            commentsSection.appendChild(nestedContainer);
+          }
+        } else {
+          // Regular comments structure
+          const comments = data.comments || [];
+          comments.forEach(comment => {
+            const commentDiv = createCommentElement(comment);
+            commentsSection.appendChild(commentDiv);
+          });
+        }
         
         interactionSection.appendChild(commentsSection);
       })
@@ -623,7 +761,13 @@
       
       const author = document.createElement('div');
       author.className = 'comment-author';
+      author.style.color = 'var(--md-primary)';
+      author.style.cursor = 'pointer';
       author.textContent = comment.userFullName || 'Unknown User';
+      author.onclick = (e) => {
+        e.stopPropagation();
+        window.location.href = `user_profile.html?userId=${comment.userId}`;
+      };
       
       const text = document.createElement('div');
       text.className = 'comment-text';
@@ -646,6 +790,78 @@
       commentDiv.appendChild(author);
       commentDiv.appendChild(text);
       commentDiv.appendChild(actions);
+      
+      // Load comment likes
+      loadCommentLikes(comment.commentId, likeBtn);
+      
+      return commentDiv;
+    }
+
+    function createNestedCommentElement(comment) {
+      const commentDiv = document.createElement('div');
+      commentDiv.className = 'nested-comment-item';
+      
+      // Create photo thumbnail
+      const thumbnail = document.createElement('div');
+      thumbnail.className = 'comment-thumbnail';
+      if (comment.photoUrl) {
+        const img = document.createElement('img');
+        img.src = `/get_photo_from_url?url=${encodeURIComponent(comment.photoUrl)}`;
+        img.onerror = () => {
+          thumbnail.innerHTML = '<span class="material-icons">photo</span>';
+        };
+        thumbnail.appendChild(img);
+      } else {
+        thumbnail.innerHTML = '<span class="material-icons">photo</span>';
+      }
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'nested-comment-content';
+      
+      const header = document.createElement('div');
+      header.className = 'nested-comment-header';
+      
+      const authorSpan = document.createElement('span');
+      authorSpan.className = 'comment-author';
+      authorSpan.style.color = 'var(--md-primary)';
+      authorSpan.style.cursor = 'pointer';
+      authorSpan.textContent = comment.userFullName || 'Unknown User';
+      authorSpan.onclick = (e) => {
+        e.stopPropagation();
+        window.location.href = `user_profile.html?userId=${comment.userId}`;
+      };
+      
+      const sourceSpan = document.createElement('span');
+      sourceSpan.className = 'comment-source';
+      sourceSpan.textContent = '• on photo';
+      
+      header.appendChild(authorSpan);
+      header.appendChild(sourceSpan);
+      
+      const text = document.createElement('div');
+      text.className = 'comment-text';
+      text.textContent = comment.commentText;
+      
+      const actions = document.createElement('div');
+      actions.className = 'comment-actions';
+      
+      const likeBtn = document.createElement('button');
+      likeBtn.className = 'comment-like-btn';
+      likeBtn.innerHTML = `<span class="material-icons">favorite_border</span><span>0</span>`;
+      likeBtn.onclick = () => toggleCommentLike(comment.commentId, likeBtn);
+      
+      const timeSpan = document.createElement('span');
+      timeSpan.textContent = formatTime(comment.createdAt);
+      
+      actions.appendChild(likeBtn);
+      actions.appendChild(timeSpan);
+      
+      contentDiv.appendChild(header);
+      contentDiv.appendChild(text);
+      contentDiv.appendChild(actions);
+      
+      commentDiv.appendChild(thumbnail);
+      commentDiv.appendChild(contentDiv);
       
       // Load comment likes
       loadCommentLikes(comment.commentId, likeBtn);
