@@ -271,7 +271,7 @@
         progress.textContent = `Uploading ${i + 1} of ${files.length}...`;
 
         try {
-          const res = await fetch("http://" + window.location.host + "/save_photos", {
+          const res = await fetch(window.location.protocol + "//" + window.location.host + "/save_photos", {
             method: "POST",
             headers: {
               "Authorization": token

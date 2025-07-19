@@ -125,7 +125,7 @@
       formData.append("phone number ", form.phone.value); // matches your backend key
       formData.append("email", form.email.value);
 
-      fetch("http://" + window.location.host + "/signup", {
+      fetch(window.location.protocol + "//" + window.location.host + "/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"

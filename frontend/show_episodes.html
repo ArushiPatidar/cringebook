@@ -5,107 +5,430 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Show Episodes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Episodes - CringeBook</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="notification-service.js"></script>
     <style>
-        body {
-          font-family: Arial, sans-serif;
-          background: #f0f2f5;
-          margin: 0;
-          padding: 0;
+        /* Material Design 3 Color Scheme and Components */
+        :root {
+          --md-primary: #3f51b5;
+          --md-primary-dark: #303f9f;
+          --md-primary-light: #5c6bc0;
+          --md-secondary: #03dac6;
+          --md-surface: #ffffff;
+          --md-surface-variant: #f5f5f5;
+          --md-background: #fafafa;
+          --md-error: #b00020;
+          --md-on-primary: #ffffff;
+          --md-on-surface: #000000;
+          --md-on-background: #000000;
+          --md-outline: #e0e0e0;
+          --md-outline-variant: #f0f0f0;
+          --md-border-radius-small: 8px;
+          --md-border-radius-medium: 12px;
+          --md-border-radius-large: 16px;
+          --md-elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24);
+          --md-elevation-2: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23);
         }
 
-        .topbar {
-          background-color: #3f51b5;
-          color: white;
-          padding: 15px 20px;
-          font-size: 20px;
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background-color: var(--md-background);
+          color: var(--md-on-background);
+          margin: 0;
+          padding: 0;
+          line-height: 1.5;
+        }
+
+        .md-top-app-bar {
+          background-color: var(--md-primary);
+          color: var(--md-on-primary);
+          padding: 16px 24px;
+          box-shadow: var(--md-elevation-1);
           display: flex;
+          align-items: center;
           justify-content: space-between;
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+        }
+
+        .md-top-app-bar-title {
+          font-size: 22px;
+          font-weight: 500;
+          letter-spacing: 0.15px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .md-top-app-bar-actions {
+          display: flex;
+          gap: 8px;
           align-items: center;
         }
 
-        .topbar .title {
-          font-weight: bold;
-        }
-
-        .topbar .actions button {
-          background: white;
-          color: #3f51b5;
-          border: none;
-          padding: 8px 12px;
-          font-weight: bold;
-          border-radius: 6px;
-          cursor: pointer;
-          margin-left: 10px;
-        }
-
-        .topbar .actions button:hover {
-          background-color: #e8eaf6;
-        }
-
-
-        .container {
-          padding: 20px;
-          display: flex;
-          flex-wrap: wrap;
-          gap: 20px;
+        .md-button {
+          display: inline-flex;
+          align-items: center;
           justify-content: center;
+          padding: 10px 16px;
+          border: none;
+          border-radius: var(--md-border-radius-large);
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-decoration: none;
+          min-height: 40px;
+          gap: 4px;
+        }
+
+        .md-button-text {
+          background-color: transparent;
+          color: var(--md-on-primary);
+        }
+
+        .md-button-text:hover {
+          background-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .md-button-filled {
+          background-color: white;
+          color: var(--md-primary);
+        }
+
+        .md-button-filled:hover {
+          background-color: #f5f5f5;
+          box-shadow: var(--md-elevation-1);
+        }
+
+        .md-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 24px;
+        }
+
+        .md-grid {
+          display: grid;
+          gap: 24px;
+          grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         }
 
         .episode-card {
-          background: white;
-          width: 300px;
-          border-radius: 12px;
-          box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.1);
+          background: var(--md-surface);
+          border-radius: var(--md-border-radius-medium);
+          box-shadow: var(--md-elevation-1);
           overflow: hidden;
-          transition: transform 0.2s;
+          transition: all 0.2s ease;
+          cursor: pointer;
         }
 
         .episode-card:hover {
-          transform: translateY(-5px);
+          box-shadow: var(--md-elevation-2);
+          transform: translateY(-4px);
         }
 
         .episode-card img {
           width: 100%;
           height: 200px;
           object-fit: cover;
+          background: var(--md-surface-variant);
         }
 
         .episode-content {
-          padding: 15px;
+          padding: 16px;
         }
 
         .episode-title {
           font-size: 18px;
-          font-weight: bold;
+          font-weight: 500;
           margin-bottom: 8px;
+          color: var(--md-on-surface);
         }
 
         .episode-description {
           font-size: 14px;
-          color: #555;
+          color: #666;
+          line-height: 1.4;
+        }
+
+        .interaction-section {
+          border-top: 1px solid var(--md-outline-variant);
+          margin-top: 16px;
+        }
+
+        .interaction-bar {
+          display: flex;
+          gap: 8px;
+          padding: 12px 0;
+        }
+
+        .interaction-btn {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 8px 12px;
+          border: 1px solid var(--md-outline);
+          border-radius: var(--md-border-radius-small);
+          background: transparent;
+          color: var(--md-on-surface);
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .interaction-btn:hover {
+          background-color: var(--md-surface-variant);
+        }
+
+        .interaction-btn.liked {
+          color: var(--md-error);
+          border-color: var(--md-error);
+        }
+
+        .interaction-btn.liked .material-icons {
+          color: var(--md-error);
+        }
+
+        .interaction-btn .material-icons {
+          font-size: 18px;
+        }
+
+        .comments-section {
+          margin-top: 12px;
+          padding-top: 12px;
+          border-top: 1px solid var(--md-outline-variant);
+        }
+
+        .comment-input-area {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 16px;
+        }
+
+        .comment-input {
+          flex: 1;
+          padding: 8px 12px;
+          border: 1px solid var(--md-outline);
+          border-radius: var(--md-border-radius-small);
+          font-family: inherit;
+          font-size: 14px;
+        }
+
+        .comment-submit {
+          padding: 8px 16px;
+          background-color: var(--md-primary);
+          color: var(--md-on-primary);
+          border: none;
+          border-radius: var(--md-border-radius-small);
+          cursor: pointer;
+        }
+
+        .comment-item {
+          padding: 8px 0;
+          border-bottom: 1px solid var(--md-outline-variant);
+        }
+
+        .comment-item:last-child {
+          border-bottom: none;
+        }
+
+        .comment-author {
+          font-weight: 500;
+          font-size: 14px;
+          margin-bottom: 4px;
+        }
+
+        .comment-text {
+          font-size: 14px;
+          color: var(--md-on-surface);
+          margin-bottom: 8px;
+        }
+
+        .comment-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 12px;
+          color: #666;
+        }
+
+        .comment-like-btn {
+          background: none;
+          border: none;
+          color: #666;
+          cursor: pointer;
+          font-size: 12px;
+          display: flex;
+          align-items: center;
+          gap: 2px;
+        }
+
+        .comment-like-btn.liked {
+          color: var(--md-error);
         }
 
         .message {
-          margin-top: 20px;
           text-align: center;
-          font-weight: bold;
-          color: red;
+          padding: 48px 24px;
+          color: #666;
+          background: var(--md-surface-variant);
+          border-radius: var(--md-border-radius-medium);
+          margin: 24px 0;
+        }
+
+        .error-message {
+          color: var(--md-error);
+          background: #ffebee;
+        }
+
+        .loading-message {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+          .md-container {
+            padding: 16px;
+          }
+          
+          .md-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+          
+          .md-top-app-bar {
+            padding: 12px 16px;
+          }
+          
+          .md-top-app-bar-title {
+            font-size: 20px;
+          }
+          
+          .md-top-app-bar-actions {
+            gap: 4px;
+          }
+        }
+
+        /* Nested Comments Styles */
+        .comments-title {
+          font-weight: 500;
+          font-size: 12px;
+          margin-bottom: 8px;
+          color: var(--md-primary);
+        }
+
+        .nested-toggle {
+          margin-top: 12px;
+          padding: 8px;
+          background-color: var(--md-surface-variant);
+          border-radius: var(--md-border-radius-small);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          font-weight: 500;
+          color: #666;
+          transition: background-color 0.2s ease;
+        }
+
+        .nested-toggle:hover {
+          background-color: #e0e0e0;
+        }
+
+        .nested-comments-container {
+          margin-top: 8px;
+          padding-left: 16px;
+          border-left: 2px solid var(--md-outline-variant);
+        }
+
+        .nested-comment-item {
+          display: flex;
+          gap: 8px;
+          padding: 8px 0;
+          border-bottom: 1px solid var(--md-outline-variant);
+          font-size: 11px;
+        }
+
+        .comment-thumbnail {
+          width: 32px;
+          height: 32px;
+          border-radius: var(--md-border-radius-small);
+          overflow: hidden;
+          flex-shrink: 0;
+          background-color: var(--md-surface-variant);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .comment-thumbnail img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .comment-thumbnail .material-icons {
+          font-size: 14px;
+          color: #666;
+        }
+
+        .nested-comment-content {
+          flex: 1;
+        }
+
+        .nested-comment-header {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          margin-bottom: 2px;
+          font-size: 10px;
+        }
+
+        .nested-comment-header .comment-author {
+          font-weight: 500;
+          color: var(--md-on-surface);
+        }
+
+        .nested-comment-header .comment-source {
+          color: #666;
         }
     </style>
 </head>
 <body>
 
-<div class="topbar">
-    <div class="title">🎞️ Episodes</div>
-    <div class="actions">
-        <button id="backToMemoryBtn">🔙 Back to Memory</button>
-        <button id="addEpisodeBtn">➕ Add Episode</button>
+<div class="md-top-app-bar">
+    <div class="md-top-app-bar-title">
+        <span class="material-icons">movie</span>
+        Episodes
+    </div>
+    <div class="md-top-app-bar-actions">
+        <button id="backToMemoryBtn" class="md-button md-button-text">
+            <span class="material-icons">arrow_back</span>
+            Back to Memory
+        </button>
+        <button id="addEpisodeBtn" class="md-button md-button-filled">
+            <span class="material-icons">add</span>
+            Add Episode
+        </button>
     </div>
 </div>
 
-<div class="container" id="episodeContainer"></div>
-<div class="message" id="message"></div>
+<div class="md-container">
+    <div class="md-grid" id="episodeContainer"></div>
+    <div class="message" id="message" style="display: none;"></div>
+</div>
 
 <script>
     function getTokenFromCookie() {
@@ -123,11 +446,11 @@
       const memoryId = getQueryParam("memoryId");
 
       if (!token || !memoryId) {
-        document.getElementById("message").textContent = "Missing token or memory ID.";
+        showMessage("Missing token or memory ID.", "error");
         return;
       }
 
-      fetch(`http://${window.location.host}/show episodes?memoryId=${memoryId}`, {
+      fetch(`/show_episodes?memoryId=${memoryId}`, {
         method: "GET",
         headers: {
           "Authorization": token
@@ -137,12 +460,21 @@
         if (!res.ok) throw new Error("Failed to fetch episodes.");
         return res.json();
       })
-      .then(episodes => {
+      .then(data => {
+        const episodes = data.episodes || data; // Handle both old and new format
+        const isOwner = data.isOwner !== undefined ? data.isOwner : true; // Default to owner for backward compatibility
+        
         const container = document.getElementById("episodeContainer");
         container.innerHTML = "";
 
+        // Hide add button if not owner
+        const addButton = document.getElementById("addEpisodeBtn");
+        if (addButton) {
+          addButton.style.display = isOwner ? "flex" : "none";
+        }
+
         if (!episodes || episodes.length === 0) {
-          document.getElementById("message").textContent = "No episodes found.";
+          showMessage("No episodes found.", "info");
           return;
         }
 
@@ -151,7 +483,7 @@
           card.className = "episode-card";
 
           const image = document.createElement("img");
-          image.src = `http://${window.location.host}/get_photo_from_url?url=${encodeURIComponent(episode.photo)}`;
+          image.src = `/get_photo_from_url?url=${encodeURIComponent(episode.photo)}`;
           image.alt = episode.title || "Episode photo";
 
           const content = document.createElement("div");
@@ -167,35 +499,454 @@
 
           content.appendChild(title);
           content.appendChild(description);
+          
+          // Add interaction section for likes and comments
+          const interactionSection = document.createElement("div");
+          interactionSection.className = "interaction-section";
+          
+          const interactionBar = document.createElement("div");
+          interactionBar.className = "interaction-bar";
+          
+          // Like button
+          const likeBtn = document.createElement("button");
+          likeBtn.className = "interaction-btn like-btn";
+          likeBtn.innerHTML = `<span class="material-icons">favorite_border</span><span class="like-count">0</span>`;
+          likeBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleLike('episode', episode.episodeId, likeBtn);
+          };
+          
+          // Comment button
+          const commentBtn = document.createElement("button");
+          commentBtn.className = "interaction-btn comment-btn";
+          commentBtn.innerHTML = `<span class="material-icons">comment</span><span class="comment-count">0</span>`;
+          commentBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleComments('episode', episode.episodeId, interactionSection);
+          };
+          
+          // Open episode button
+          const openBtn = document.createElement("button");
+          openBtn.className = "interaction-btn open-btn";
+          openBtn.innerHTML = `<span class="material-icons">open_in_new</span>Open`;
+          openBtn.onclick = (e) => {
+            e.stopPropagation();
+            sessionStorage.setItem("currentMemoryId", memoryId);
+            window.location.href = `show_photos.html?episodeId=${episode.episodeId}`;
+          };
+          
+          interactionBar.appendChild(likeBtn);
+          interactionBar.appendChild(commentBtn);
+          interactionBar.appendChild(openBtn);
+          interactionSection.appendChild(interactionBar);
+          
+          content.appendChild(interactionSection);
           card.appendChild(image);
           card.appendChild(content);
 
-        // ✅ Add click handler to open show_photos.html
-        card.style.cursor = "pointer";
-        card.onclick = () => {
-          // Optional: Store memoryId to support "Back" from photo view
-          sessionStorage.setItem("currentMemoryId", memoryId);
-          window.location.href = `/frontend/show_photos.html?episodeId=${episode.episodeId}`;
-        };
+          // Load initial like/comment counts
+          loadInteractionData('episode', episode.episodeId, likeBtn, commentBtn);
 
-        container.appendChild(card);
-
+          container.appendChild(card);
         });
       })
       .catch(err => {
-        document.getElementById("message").textContent = "Error: " + err.message;
+        showMessage("Error: " + err.message, "error");
       });
+    }
+
+    function showMessage(text, type = "info") {
+      const messageEl = document.getElementById("message");
+      messageEl.innerHTML = `
+        <div class="loading-message">
+          <span class="material-icons">${type === "error" ? "error" : "info"}</span>
+          ${text}
+        </div>
+      `;
+      messageEl.className = `message ${type === "error" ? "error-message" : ""}`;
+      messageEl.style.display = "block";
+    }
+
+    // Interaction functions for likes and comments
+    function loadInteractionData(targetType, targetId, likeBtn, commentBtn) {
+      const token = getTokenFromCookie();
+      if (!token) return;
+
+      // Load likes
+      fetch(`/likes?targetType=${targetType}&targetId=${targetId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('.like-count');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.userLiked) {
+          likeBtn.classList.add('liked');
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.classList.remove('liked');
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error loading likes:', err));
+
+      // Load comments count
+      fetch(`/comments?targetType=${targetType}&targetId=${targetId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = commentBtn.querySelector('.comment-count');
+        countSpan.textContent = data.commentCount || 0;
+      })
+      .catch(err => console.error('Error loading comments:', err));
+    }
+
+    function toggleLike(targetType, targetId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/like', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=${targetType}&targetId=${targetId}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('.like-count');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.liked) {
+          likeBtn.classList.add('liked');
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.classList.remove('liked');
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error toggling like:', err));
+    }
+
+    function toggleComments(targetType, targetId, interactionSection) {
+      const existingCommentsSection = interactionSection.querySelector('.comments-section');
+      
+      if (existingCommentsSection) {
+        existingCommentsSection.remove();
+        return;
+      }
+
+      loadComments(targetType, targetId, interactionSection);
+    }
+
+    function loadComments(targetType, targetId, interactionSection) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Use nested-comments endpoint for episodes to get photo thumbnails
+      const endpoint = targetType === 'episode' 
+        ? `/nested-comments?targetType=${targetType}&targetId=${targetId}`
+        : `/comments?targetType=${targetType}&targetId=${targetId}`;
+
+      fetch(endpoint, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const commentsSection = document.createElement('div');
+        commentsSection.className = 'comments-section';
+        
+        // Add comment input area
+        const inputArea = document.createElement('div');
+        inputArea.className = 'comment-input-area';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'comment-input';
+        input.placeholder = 'Add a comment...';
+        
+        const submitBtn = document.createElement('button');
+        submitBtn.className = 'comment-submit';
+        submitBtn.textContent = 'Post';
+        submitBtn.onclick = () => {
+          if (input.value.trim()) {
+            postComment(targetType, targetId, input.value.trim(), interactionSection);
+            input.value = '';
+          }
+        };
+        
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter' && input.value.trim()) {
+            postComment(targetType, targetId, input.value.trim(), interactionSection);
+            input.value = '';
+          }
+        });
+        
+        inputArea.appendChild(input);
+        inputArea.appendChild(submitBtn);
+        commentsSection.appendChild(inputArea);
+        
+        // Handle both nested and regular comment data
+        if (data.directComments && data.nestedComments) {
+          // Nested comments structure for episodes
+          
+          // Add direct comments section
+          if (data.directComments.length > 0) {
+            const directTitle = document.createElement('div');
+            directTitle.className = 'comments-title';
+            directTitle.textContent = `Direct Comments (${data.directComments.length})`;
+            commentsSection.appendChild(directTitle);
+            
+            data.directComments.forEach(comment => {
+              const commentDiv = createCommentElement(comment);
+              commentsSection.appendChild(commentDiv);
+            });
+          }
+          
+          // Add nested comments section with toggle
+          if (data.nestedComments.length > 0) {
+            const nestedToggle = document.createElement('div');
+            nestedToggle.className = 'nested-toggle';
+            nestedToggle.innerHTML = `
+              <span class="material-icons">expand_more</span>
+              <span>Comments from photos (${data.nestedComments.length})</span>
+            `;
+            
+            const nestedContainer = document.createElement('div');
+            nestedContainer.className = 'nested-comments-container';
+            nestedContainer.style.display = 'none';
+            
+            data.nestedComments.forEach(comment => {
+              const commentDiv = createNestedCommentElement(comment);
+              nestedContainer.appendChild(commentDiv);
+            });
+            
+            // Toggle functionality
+            let isExpanded = false;
+            nestedToggle.onclick = () => {
+              isExpanded = !isExpanded;
+              nestedContainer.style.display = isExpanded ? 'block' : 'none';
+              nestedToggle.querySelector('.material-icons').textContent = isExpanded ? 'expand_less' : 'expand_more';
+            };
+            
+            commentsSection.appendChild(nestedToggle);
+            commentsSection.appendChild(nestedContainer);
+          }
+        } else {
+          // Regular comments structure
+          const comments = data.comments || [];
+          comments.forEach(comment => {
+            const commentDiv = createCommentElement(comment);
+            commentsSection.appendChild(commentDiv);
+          });
+        }
+        
+        interactionSection.appendChild(commentsSection);
+      })
+      .catch(err => console.error('Error loading comments:', err));
+    }
+
+    function createCommentElement(comment) {
+      const commentDiv = document.createElement('div');
+      commentDiv.className = 'comment-item';
+      commentDiv.style.cssText = 'margin-bottom: 12px; padding: 12px; background: var(--md-surface-variant); border-radius: 8px; display: flex; gap: 12px; align-items: flex-start;';
+      
+      // Profile picture on the left
+      const profilePicHtml = comment.userProfilePicture 
+        ? `<img src="/uploads/profile_pictures/${comment.userProfilePicture}" alt="Profile" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iMTYiIGZpbGw9IiNlMGUwZTAiLz4KPHA+PC9wPgo8L3N2Zz4='">`
+        : '<div style="width: 32px; height: 32px; border-radius: 50%; background: var(--md-outline); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-icons" style="font-size: 16px; color: var(--md-on-surface);">person</span></div>';
+      
+      commentDiv.innerHTML = `
+        ${profilePicHtml}
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 500; margin-bottom: 4px; color: var(--md-primary); cursor: pointer;" onclick="window.location.href='user_profile.html?userId=${comment.userId}'">
+            ${comment.userFullName || 'Unknown User'}
+          </div>
+          <div style="margin-bottom: 8px; color: var(--md-on-surface);">${comment.commentText}</div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button class="comment-like-btn" onclick="toggleCommentLike(${comment.commentId}, this)" style="display: flex; align-items: center; gap: 4px; background: none; border: none; color: var(--md-primary); cursor: pointer; font-size: 12px;">
+              <span class="material-icons" style="font-size: 16px;">favorite_border</span>
+              <span>0</span>
+            </button>
+            <span style="font-size: 12px; color: #666;">${formatTime(comment.createdAt)}</span>
+          </div>
+        </div>
+      `;
+      
+      // Load comment likes
+      const likeBtn = commentDiv.querySelector('.comment-like-btn');
+      loadCommentLikes(comment.commentId, likeBtn);
+      
+      return commentDiv;
+    }
+
+    function createNestedCommentElement(comment) {
+      const commentDiv = document.createElement('div');
+      commentDiv.className = 'nested-comment-item';
+      commentDiv.style.cssText = 'display: flex; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--md-outline-variant); font-size: 11px; align-items: flex-start;';
+      
+      // Profile picture on the left
+      const profilePicHtml = comment.userProfilePicture 
+        ? `<img src="/uploads/profile_pictures/${comment.userProfilePicture}" alt="Profile" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgiIGhlaWdodD0iMjgiIHZpZXdCb3g9IjAgMCAyOCAyOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTQiIGN5PSIxNCIgcj0iMTQiIGZpbGw9IiNlMGUwZTAiLz4KPHA+PC9wPgo8L3N2Zz4='">`
+        : '<div style="width: 28px; height: 28px; border-radius: 50%; background: var(--md-outline); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-icons" style="font-size: 14px; color: var(--md-on-surface);">person</span></div>';
+      
+      // Photo thumbnail on the right (if available)
+      let rightImageHtml = '';
+      if (comment.photoUrl) {
+        rightImageHtml = `<img src="/get_photo_from_url?url=${encodeURIComponent(comment.photoUrl)}" alt="Photo" style="width: 32px; height: 32px; border-radius: 4px; object-fit: cover; cursor: pointer; flex-shrink: 0;" onclick="showImageFullView('${comment.photoUrl}')">`;
+      }
+      
+      commentDiv.innerHTML = `
+        ${profilePicHtml}
+        <div style="flex: 1; min-width: 0;">
+          <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px; font-size: 10px;">
+            <span style="font-weight: 500; color: var(--md-primary); cursor: pointer;" onclick="window.location.href='user_profile.html?userId=${comment.userId}'">${comment.userFullName || 'Unknown User'}</span>
+            <span style="color: #666;">• on photo</span>
+          </div>
+          <div style="margin-bottom: 4px; color: var(--md-on-surface);">${comment.commentText}</div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 10px; color: #666;">
+            <button style="background: none; border: none; color: var(--md-primary); cursor: pointer; font-size: 10px; display: flex; align-items: center; gap: 2px;" onclick="toggleCommentLike(${comment.commentId}, this)">
+              <span class="material-icons" style="font-size: 12px;">favorite_border</span><span>0</span>
+            </button>
+            <span>${formatTime(comment.createdAt)}</span>
+          </div>
+        </div>
+        ${rightImageHtml}
+      `;
+      
+      // Load comment likes
+      const likeBtn = commentDiv.querySelector('[onclick*="toggleCommentLike"]');
+      if (likeBtn) {
+        loadCommentLikes(comment.commentId, likeBtn);
+      }
+      
+      return commentDiv;
+    }
+
+    function postComment(targetType, targetId, commentText, interactionSection) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/comment', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=${targetType}&targetId=${targetId}&commentText=${encodeURIComponent(commentText)}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        // Reload comments
+        const commentsSection = interactionSection.querySelector('.comments-section');
+        if (commentsSection) {
+          commentsSection.remove();
+        }
+        loadComments(targetType, targetId, interactionSection);
+        
+        // Update comment count
+        const commentBtn = interactionSection.querySelector('.comment-btn .comment-count');
+        if (commentBtn) {
+          commentBtn.textContent = parseInt(commentBtn.textContent) + 1;
+        }
+      })
+      .catch(err => console.error('Error posting comment:', err));
+    }
+
+    function toggleCommentLike(commentId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/like', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=comment&targetId=${commentId}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('span:last-child');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.liked) {
+          likeBtn.classList.add('liked');
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.classList.remove('liked');
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error toggling comment like:', err));
+    }
+
+    function loadCommentLikes(commentId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) return;
+
+      fetch(`/likes?targetType=comment&targetId=${commentId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('span:last-child');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.userLiked) {
+          likeBtn.classList.add('liked');
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.classList.remove('liked');
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error loading comment likes:', err));
+    }
+
+    function formatTime(timestamp) {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+      
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      return date.toLocaleDateString();
     }
 
     window.onload = fetchEpisodes;
     document.getElementById("addEpisodeBtn").onclick = () => {
       const memoryId = new URLSearchParams(window.location.search).get("memoryId");
       if (memoryId) {
-        window.location.href = `/frontend/add_episode.html?memoryId=${memoryId}`;
+        window.location.href = `add_episode.html?memoryId=${memoryId}`;
       }
     };
     document.getElementById("backToMemoryBtn").onclick = () => {
-      window.location.href = "/frontend/show_memory.html";
+      window.location.href = "show_memory.html";
     };
 
 </script>

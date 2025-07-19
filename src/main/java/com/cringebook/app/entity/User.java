@@ -25,6 +25,9 @@ public class User {
     @Column(name="phone_number")
     private String phone;
 
+    @Column(name="profile_picture")
+    private String profilePicture;
+
     public User() {
     }
 
@@ -34,6 +37,7 @@ public class User {
         this.name = name;
         this.email = email;
         this.phone = phone;
+        this.profilePicture = null; // Default to no profile picture
     }
 
 
@@ -47,6 +51,38 @@ public class User {
 
     public String getPassword() {
         return password;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public String getProfilePicture() {
+        return profilePicture;
+    }
+
+    public void setProfilePicture(String profilePicture) {
+        this.profilePicture = profilePicture;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
 

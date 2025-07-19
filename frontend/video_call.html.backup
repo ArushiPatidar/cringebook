@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Video Call - CringeBook</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* Material Design 3 Color Scheme and Components */
+        :root {
+          --md-primary: #3f51b5;
+          --md-primary-dark: #303f9f;
+          --md-error: #b00020;
+          --md-surface: #ffffff;
+          --md-background: #fafafa;
+          --md-on-primary: #ffffff;
+          --md-on-surface: #000000;
+          --md-elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24);
+          --md-border-radius-large: 16px;
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background-color: #000;
+          color: white;
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+        }
+
+        .video-container {
+          position: relative;
+          width: 100vw;
+          height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .remote-video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          background: #222;
+        }
+
+        .local-video {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          width: 200px;
+          height: 150px;
+          object-fit: cover;
+          border-radius: var(--md-border-radius-large);
+          border: 2px solid white;
+          background: #333;
+        }
+
+        .controls {
+          position: absolute;
+          bottom: 30px;
+          left: 50%;
+          transform: translateX(-50%);
+          display: flex;
+          gap: 20px;
+          z-index: 1000;
+        }
+
+        .control-btn {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          font-size: 24px;
+        }
+
+        .control-btn:hover {
+          transform: scale(1.1);
+        }
+
+        .btn-mute {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+        }
+
+        .btn-mute.muted {
+          background: var(--md-error);
+        }
+
+        .btn-video {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+        }
+
+        .btn-video.disabled {
+          background: var(--md-error);
+        }
+
+        .btn-hangup {
+          background: var(--md-error);
+          color: white;
+        }
+
+        .call-info {
+          position: absolute;
+          top: 20px;
+          left: 20px;
+          background: rgba(0, 0, 0, 0.5);
+          padding: 16px;
+          border-radius: var(--md-border-radius-large);
+          color: white;
+        }
+
+        .call-status {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          text-align: center;
+          background: rgba(0, 0, 0, 0.7);
+          padding: 32px;
+          border-radius: var(--md-border-radius-large);
+          color: white;
+        }
+
+        .call-status h2 {
+          margin: 0 0 16px 0;
+          font-size: 24px;
+        }
+
+        .call-status p {
+          margin: 0;
+          opacity: 0.8;
+        }
+
+        .incoming-call {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.9);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 2000;
+        }
+
+        .incoming-call-card {
+          background: var(--md-surface);
+          color: var(--md-on-surface);
+          padding: 32px;
+          border-radius: var(--md-border-radius-large);
+          text-align: center;
+          box-shadow: var(--md-elevation-1);
+          min-width: 300px;
+        }
+
+        .incoming-call-avatar {
+          width: 80px;
+          height: 80px;
+          border-radius: 50%;
+          background: var(--md-primary);
+          color: var(--md-on-primary);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 32px;
+          margin: 0 auto 16px;
+        }
+
+        .incoming-call-actions {
+          display: flex;
+          gap: 16px;
+          margin-top: 24px;
+          justify-content: center;
+        }
+
+        .btn-accept {
+          background: #4caf50;
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 30px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .btn-decline {
+          background: var(--md-error);
+          color: white;
+          border: none;
+          padding: 12px 24px;
+          border-radius: 30px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .hidden {
+          display: none !important;
+        }
+
+        @media (max-width: 768px) {
+          .local-video {
+            width: 120px;
+            height: 90px;
+            top: 10px;
+            right: 10px;
+          }
+          
+          .controls {
+            bottom: 20px;
+          }
+          
+          .control-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+          }
+        }
+    </style>
+</head>
+<body>
+
+<div class="video-container">
+    <video id="remoteVideo" class="remote-video" autoplay playsinline></video>
+    <video id="localVideo" class="local-video" autoplay muted playsinline></video>
+    
+    <div class="call-info" id="callInfo">
+        <div><strong id="callerName">Connecting...</strong></div>
+        <div id="callDuration">00:00</div>
+    </div>
+    
+    <div class="call-status" id="callStatus">
+        <h2>Setting up call...</h2>
+        <p>Please wait while we connect you</p>
+    </div>
+    
+    <div class="controls" id="controls" style="display: none;">
+        <button class="control-btn btn-mute" id="muteBtn" onclick="toggleMute()">
+            <span class="material-icons">mic</span>
+        </button>
+        <button class="control-btn btn-video" id="videoBtn" onclick="toggleVideo()">
+            <span class="material-icons">videocam</span>
+        </button>
+        <button class="control-btn btn-hangup" onclick="hangUp()">
+            <span class="material-icons">call_end</span>
+        </button>
+    </div>
+</div>
+
+<div class="incoming-call hidden" id="incomingCall">
+    <div class="incoming-call-card">
+        <div class="incoming-call-avatar" id="incomingAvatar">F</div>
+        <h3 id="incomingCallerName">Friend Name</h3>
+        <p>Incoming video call</p>
+        <div class="incoming-call-actions">
+            <button class="btn-accept" onclick="acceptCall()">
+                <span class="material-icons">call</span>
+                Accept
+            </button>
+            <button class="btn-decline" onclick="declineCall()">
+                <span class="material-icons">call_end</span>
+                Decline
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let localStream = null;
+    let remoteStream = null;
+    let peerConnection = null;
+    let isInitiator = false;
+    let isMuted = false;
+    let isVideoEnabled = true;
+    let callStartTime = null;
+    let callDurationInterval = null;
+    let friendId = null;
+    let friendName = null;
+
+    // Get friend info from URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    friendId = urlParams.get('friendId');
+    friendName = urlParams.get('friendName') || 'Friend';
+
+    // WebRTC configuration
+    const configuration = {
+        iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+    };
+
+    function getTokenFromCookie() {
+        const match = document.cookie.match(/(^| )Authorization=([^;]+)/);
+        return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    async function initializeCall() {
+        try {
+            // Get user media
+            localStream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: true
+            });
+            
+            document.getElementById('localVideo').srcObject = localStream;
+            
+            // Create peer connection
+            peerConnection = new RTCPeerConnection(configuration);
+            
+            // Add local stream to peer connection
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+            
+            // Handle remote stream
+            peerConnection.ontrack = (event) => {
+                remoteStream = event.streams[0];
+                document.getElementById('remoteVideo').srcObject = remoteStream;
+                document.getElementById('callStatus').style.display = 'none';
+                document.getElementById('controls').style.display = 'flex';
+                startCallTimer();
+            };
+            
+            // Handle ICE candidates (simplified for demo)
+            peerConnection.onicecandidate = (event) => {
+                if (event.candidate) {
+                    // In a real implementation, send this to the other peer via signaling server
+                    console.log('ICE candidate:', event.candidate);
+                }
+            };
+            
+            // Update UI
+            document.getElementById('callerName').textContent = friendName;
+            
+            // Simulate starting call (in real implementation, you'd initiate WebRTC signaling)
+            setTimeout(() => {
+                simulateCallConnect();
+            }, 3000);
+            
+        } catch (error) {
+            console.error('Error initializing call:', error);
+            showError('Failed to access camera/microphone');
+        }
+    }
+
+    function simulateCallConnect() {
+        // This is a simplified simulation
+        // In a real implementation, you'd handle WebRTC signaling through a server
+        document.getElementById('callStatus').style.display = 'none';
+        document.getElementById('controls').style.display = 'flex';
+        startCallTimer();
+    }
+
+    function startCallTimer() {
+        callStartTime = new Date();
+        callDurationInterval = setInterval(updateCallDuration, 1000);
+    }
+
+    function updateCallDuration() {
+        if (!callStartTime) return;
+        
+        const now = new Date();
+        const duration = Math.floor((now - callStartTime) / 1000);
+        const minutes = Math.floor(duration / 60).toString().padStart(2, '0');
+        const seconds = (duration % 60).toString().padStart(2, '0');
+        
+        document.getElementById('callDuration').textContent = `${minutes}:${seconds}`;
+    }
+
+    function toggleMute() {
+        if (!localStream) return;
+        
+        const audioTrack = localStream.getAudioTracks()[0];
+        if (audioTrack) {
+            audioTrack.enabled = !audioTrack.enabled;
+            isMuted = !audioTrack.enabled;
+            
+            const btn = document.getElementById('muteBtn');
+            const icon = btn.querySelector('.material-icons');
+            
+            if (isMuted) {
+                btn.classList.add('muted');
+                icon.textContent = 'mic_off';
+            } else {
+                btn.classList.remove('muted');
+                icon.textContent = 'mic';
+            }
+        }
+    }
+
+    function toggleVideo() {
+        if (!localStream) return;
+        
+        const videoTrack = localStream.getVideoTracks()[0];
+        if (videoTrack) {
+            videoTrack.enabled = !videoTrack.enabled;
+            isVideoEnabled = videoTrack.enabled;
+            
+            const btn = document.getElementById('videoBtn');
+            const icon = btn.querySelector('.material-icons');
+            
+            if (isVideoEnabled) {
+                btn.classList.remove('disabled');
+                icon.textContent = 'videocam';
+            } else {
+                btn.classList.add('disabled');
+                icon.textContent = 'videocam_off';
+            }
+        }
+    }
+
+    function hangUp() {
+        // Clean up
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+        }
+        
+        if (peerConnection) {
+            peerConnection.close();
+        }
+        
+        if (callDurationInterval) {
+            clearInterval(callDurationInterval);
+        }
+        
+        // Return to previous page
+        window.history.back();
+    }
+
+    function acceptCall() {
+        document.getElementById('incomingCall').classList.add('hidden');
+        initializeCall();
+    }
+
+    function declineCall() {
+        window.history.back();
+    }
+
+    function showError(message) {
+        document.getElementById('callStatus').innerHTML = `
+            <h2>Call Failed</h2>
+            <p>${message}</p>
+            <button onclick="hangUp()" style="margin-top: 16px; padding: 8px 16px; background: white; color: black; border: none; border-radius: 8px; cursor: pointer;">
+                Go Back
+            </button>
+        `;
+    }
+
+    // Check if this is an incoming call
+    const isIncoming = urlParams.get('incoming') === 'true';
+    
+    if (isIncoming) {
+        // Show incoming call UI
+        document.getElementById('incomingCallerName').textContent = friendName;
+        const initials = friendName.split(' ').map(n => n[0]).join('').toUpperCase();
+        document.getElementById('incomingAvatar').textContent = initials;
+        document.getElementById('incomingCall').classList.remove('hidden');
+    } else {
+        // Start outgoing call
+        initializeCall();
+    }
+
+    // Handle page unload
+    window.addEventListener('beforeunload', () => {
+        hangUp();
+    });
+</script>
+
+</body>
+</html>

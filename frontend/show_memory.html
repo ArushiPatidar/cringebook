@@ -4,7 +4,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Show Memories</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="notification-service.js"></script>
     <style>
         body {
           font-family: Arial, sans-serif;
@@ -220,7 +223,14 @@
 <div class="topbar">
     <div class="title">📸 My Memories</div>
     <div class="actions">
-        <button onclick="window.location.href='/frontend/add_memory.html'">➕ Add Memory</button>
+        <button onclick="window.location.href='feed.html'">📰 Feed</button>
+        <button onclick="window.location.href='messages.html'">💬 Messages</button>
+        <button onclick="window.location.href='profile.html'">👤 Profile</button>
+        <button onclick="window.location.href='search_users.html'">🔍 Find Friends</button>
+        <button onclick="window.location.href='friends_list.html'">👥 Friends</button>
+        <button onclick="window.location.href='friend_requests.html'">📨 Requests</button>
+        <button onclick="window.location.href='add_memory.html'">➕ Add Memory</button>
+        <button onclick="logout()">🚪 Logout</button>
     </div>
 </div>
 
@@ -300,7 +310,7 @@
           if (description) formData.append("description", description);
           if (fileInput.files.length > 0) formData.append("image", fileInput.files[0]);
 
-          fetch("http://"+window.location.host+"/update memory", {
+          fetch(window.location.protocol + "//" + window.location.host + "/update memory", {
             method: "PUT",
             headers: { "Authorization": token },
             body: formData
@@ -311,7 +321,7 @@
 
     function confirmDelete() {
       const token = getTokenFromCookie();
-      fetch(`http://${window.location.host}/delete memory?memoryId=${currentDeleteId}`, {
+      fetch(`${window.location.protocol}//${window.location.host}/delete memory?memoryId=${currentDeleteId}`, {
         method: "DELETE",
         headers: { "Authorization": token }
       }).then(() => location.reload());
@@ -319,20 +329,22 @@
 
     function fetchMemories() {
       const token = getTokenFromCookie();
-      fetch("http://"+window.location.host+"/show_memory", {
+      fetch(window.location.protocol + "//" + window.location.host + "/show_memory", {
         method: "GET",
         headers: { "Authorization": token }
       })
       .then(res => res.json())
-      .then(memories => {
+      .then(data => {
+        const memories = data.memories || data; // Handle both old and new format
         const container = document.getElementById("memoryContainer");
         container.innerHTML = "";
-        memories.forEach(memory => {
-          const card = document.createElement("div");
+        if (memories && memories.length > 0) {
+          memories.forEach(memory => {
+            const card = document.createElement("div");
           card.className = "memory-card";
 
           const image = document.createElement("img");
-          image.src = `http://${window.location.host}/get_photo_from_url?url=${encodeURIComponent(memory.photo)}`;
+          image.src = `${window.location.protocol}//${window.location.host}/get_photo_from_url?url=${encodeURIComponent(memory.photo)}`;
           image.alt = memory.title;
           card.appendChild(image);
 
@@ -373,15 +385,92 @@
 
           content.appendChild(titleContainer);
           content.appendChild(description);
+          
+          // Add interaction section for likes and comments
+          const interactionSection = document.createElement("div");
+          interactionSection.className = "interaction-section";
+          interactionSection.style.borderTop = "1px solid #e0e0e0";
+          interactionSection.style.marginTop = "12px";
+          
+          const interactionBar = document.createElement("div");
+          interactionBar.className = "interaction-bar";
+          interactionBar.style.display = "flex";
+          interactionBar.style.gap = "8px";
+          interactionBar.style.padding = "8px 0";
+          
+          // Like button
+          const likeBtn = document.createElement("button");
+          likeBtn.className = "interaction-btn like-btn";
+          likeBtn.innerHTML = `<span class="material-icons">favorite_border</span><span class="like-count">0</span>`;
+          likeBtn.style.display = "flex";
+          likeBtn.style.alignItems = "center";
+          likeBtn.style.gap = "4px";
+          likeBtn.style.padding = "6px 10px";
+          likeBtn.style.border = "1px solid #e0e0e0";
+          likeBtn.style.borderRadius = "8px";
+          likeBtn.style.background = "transparent";
+          likeBtn.style.cursor = "pointer";
+          likeBtn.style.fontSize = "12px";
+          likeBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleLike('memory', memory.memoryId, likeBtn);
+          };
+          
+          // Comment button
+          const commentBtn = document.createElement("button");
+          commentBtn.className = "interaction-btn comment-btn";
+          commentBtn.innerHTML = `<span class="material-icons">comment</span><span class="comment-count">0</span>`;
+          commentBtn.style.display = "flex";
+          commentBtn.style.alignItems = "center";
+          commentBtn.style.gap = "4px";
+          commentBtn.style.padding = "6px 10px";
+          commentBtn.style.border = "1px solid #e0e0e0";
+          commentBtn.style.borderRadius = "8px";
+          commentBtn.style.background = "transparent";
+          commentBtn.style.cursor = "pointer";
+          commentBtn.style.fontSize = "12px";
+          commentBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleComments('memory', memory.memoryId, interactionSection);
+          };
+          
+          // Open memory button
+          const openBtn = document.createElement("button");
+          openBtn.className = "interaction-btn open-btn";
+          openBtn.innerHTML = `<span class="material-icons">open_in_new</span>Open`;
+          openBtn.style.display = "flex";
+          openBtn.style.alignItems = "center";
+          openBtn.style.gap = "4px";
+          openBtn.style.padding = "6px 10px";
+          openBtn.style.border = "1px solid #e0e0e0";
+          openBtn.style.borderRadius = "8px";
+          openBtn.style.background = "transparent";
+          openBtn.style.cursor = "pointer";
+          openBtn.style.fontSize = "12px";
+          openBtn.onclick = (e) => {
+            e.stopPropagation();
+            sessionStorage.setItem("currentMemoryId", memory.memoryId);
+            window.location.href = `/frontend/show_episodes.html?memoryId=${memory.memoryId}`;
+          };
+          
+          interactionBar.appendChild(likeBtn);
+          interactionBar.appendChild(commentBtn);
+          interactionBar.appendChild(openBtn);
+          interactionSection.appendChild(interactionBar);
+          
+          content.appendChild(interactionSection);
           card.appendChild(content);
+
+          // Load initial like/comment counts
+          loadInteractionData('memory', memory.memoryId, likeBtn, commentBtn);
 
 <!--          card.onclick = () => {-->
 <!--            sessionStorage.setItem("currentMemoryId", memory.memoryId);-->
 <!--            window.location.href = `/frontend/show_episodes.html?memoryId=${memory.memoryId}`;-->
 <!--          };-->
         card.addEventListener("click", (e) => {
-          // Ignore clicks if they happened inside a button or menu
-          if (e.target.closest(".menu") || e.target.closest(".menu-button")) return;
+          // Ignore clicks if they happened inside a button, menu, or interaction section
+          if (e.target.closest(".menu") || e.target.closest(".menu-button") || e.target.closest(".interaction-btn") || e.target.closest(".comment-input") || e.target.closest(".comments-list") || e.target.closest(".comments-section")) return;
 
           sessionStorage.setItem("currentMemoryId", memory.memoryId);
           window.location.href = `/frontend/show_episodes.html?memoryId=${memory.memoryId}`;
@@ -389,6 +478,9 @@
 
           container.appendChild(card);
         });
+        } else {
+          container.innerHTML = "<p>No memories found.</p>";
+        }
       })
       .catch(err => {
         document.getElementById("message").textContent = err.message;
@@ -399,7 +491,577 @@
       document.querySelectorAll(".menu").forEach(m => m.style.display = "none");
     });
 
+    function logout() {
+        if (confirm('Are you sure you want to logout?')) {
+            fetch('/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = 'login.html';
+                } else {
+                    alert('Error logging out');
+                }
+            })
+            .catch(error => {
+                console.error('Logout error:', error);
+                // Even if there's an error, redirect to login
+                window.location.href = 'login.html';
+            });
+        }
+    }
+
     window.onload = fetchMemories;
+
+    // Interaction functions for likes and comments
+    function loadInteractionData(targetType, targetId, likeBtn, commentBtn) {
+      const token = getTokenFromCookie();
+      if (!token) return;
+
+      // Load likes
+      fetch(`/likes?targetType=${targetType}&targetId=${targetId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('.like-count');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.userLiked) {
+          likeBtn.style.color = '#b00020';
+          likeBtn.style.borderColor = '#b00020';
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.style.color = '#666';
+          likeBtn.style.borderColor = '#e0e0e0';
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error loading likes:', err));
+
+      // Load comments count
+      fetch(`/comments?targetType=${targetType}&targetId=${targetId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = commentBtn.querySelector('.comment-count');
+        countSpan.textContent = data.commentCount || 0;
+      })
+      .catch(err => console.error('Error loading comments:', err));
+    }
+
+    function toggleLike(targetType, targetId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/like', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=${targetType}&targetId=${targetId}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('.like-count');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.liked) {
+          likeBtn.style.color = '#b00020';
+          likeBtn.style.borderColor = '#b00020';
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.style.color = '#666';
+          likeBtn.style.borderColor = '#e0e0e0';
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error toggling like:', err));
+    }
+
+    function toggleComments(targetType, targetId, interactionSection) {
+      const existingCommentsSection = interactionSection.querySelector('.comments-section');
+      
+      if (existingCommentsSection) {
+        existingCommentsSection.remove();
+        return;
+      }
+
+      loadComments(targetType, targetId, interactionSection);
+    }
+
+    function loadComments(targetType, targetId, interactionSection) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Use nested-comments endpoint for memories and episodes to get thumbnails
+      const endpoint = (targetType === 'memory' || targetType === 'episode') 
+        ? `/nested-comments?targetType=${targetType}&targetId=${targetId}`
+        : `/comments?targetType=${targetType}&targetId=${targetId}`;
+
+      fetch(endpoint, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const commentsSection = document.createElement('div');
+        commentsSection.className = 'comments-section';
+        commentsSection.style.marginTop = '8px';
+        commentsSection.style.paddingTop = '8px';
+        commentsSection.style.borderTop = '1px solid #e0e0e0';
+        
+        // Add comment input area
+        const inputArea = document.createElement('div');
+        inputArea.style.display = 'flex';
+        inputArea.style.gap = '6px';
+        inputArea.style.marginBottom = '8px';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'Add a comment...';
+        input.style.flex = '1';
+        input.style.padding = '6px 8px';
+        input.style.border = '1px solid #e0e0e0';
+        input.style.borderRadius = '6px';
+        input.style.fontSize = '12px';
+        
+        const submitBtn = document.createElement('button');
+        submitBtn.textContent = 'Post';
+        submitBtn.style.padding = '6px 12px';
+        submitBtn.style.backgroundColor = '#3f51b5';
+        submitBtn.style.color = 'white';
+        submitBtn.style.border = 'none';
+        submitBtn.style.borderRadius = '6px';
+        submitBtn.style.cursor = 'pointer';
+        submitBtn.style.fontSize = '12px';
+        submitBtn.onclick = () => {
+          if (input.value.trim()) {
+            postComment(targetType, targetId, input.value.trim(), interactionSection);
+            input.value = '';
+          }
+        };
+        
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter' && input.value.trim()) {
+            postComment(targetType, targetId, input.value.trim(), interactionSection);
+            input.value = '';
+          }
+        });
+        
+        inputArea.appendChild(input);
+        inputArea.appendChild(submitBtn);
+        commentsSection.appendChild(inputArea);
+        
+        // Handle both nested and regular comment data
+        if (data.directComments && data.nestedComments) {
+          // Nested comments structure for memories and episodes
+          
+          // Add direct comments section
+          if (data.directComments.length > 0) {
+            const directTitle = document.createElement('div');
+            directTitle.style.fontWeight = '500';
+            directTitle.style.fontSize = '12px';
+            directTitle.style.marginBottom = '8px';
+            directTitle.style.color = '#3f51b5';
+            directTitle.textContent = `Direct Comments (${data.directComments.length})`;
+            commentsSection.appendChild(directTitle);
+            
+            data.directComments.forEach(comment => {
+              const commentDiv = createCommentElement(comment);
+              commentsSection.appendChild(commentDiv);
+            });
+          }
+          
+          // Add nested comments section with toggle
+          if (data.nestedComments.length > 0) {
+            const nestedToggle = document.createElement('div');
+            nestedToggle.style.marginTop = '12px';
+            nestedToggle.style.padding = '8px';
+            nestedToggle.style.backgroundColor = '#f5f5f5';
+            nestedToggle.style.borderRadius = '6px';
+            nestedToggle.style.cursor = 'pointer';
+            nestedToggle.style.display = 'flex';
+            nestedToggle.style.alignItems = 'center';
+            nestedToggle.style.gap = '6px';
+            nestedToggle.style.fontSize = '12px';
+            nestedToggle.style.fontWeight = '500';
+            nestedToggle.style.color = '#666';
+            
+            const toggleIcon = document.createElement('span');
+            toggleIcon.className = 'material-icons';
+            toggleIcon.style.fontSize = '16px';
+            toggleIcon.textContent = 'expand_more';
+            
+            const toggleText = document.createElement('span');
+            const commentType = targetType === 'memory' ? 'episodes and photos' : 'photos';
+            toggleText.textContent = `Comments from ${commentType} (${data.nestedComments.length})`;
+            
+            nestedToggle.appendChild(toggleIcon);
+            nestedToggle.appendChild(toggleText);
+            
+            const nestedContainer = document.createElement('div');
+            nestedContainer.style.display = 'none';
+            nestedContainer.style.marginTop = '8px';
+            nestedContainer.style.paddingLeft = '16px';
+            nestedContainer.style.borderLeft = '2px solid #e0e0e0';
+            
+            data.nestedComments.forEach(comment => {
+              const commentDiv = createNestedCommentElement(comment, targetType);
+              nestedContainer.appendChild(commentDiv);
+            });
+            
+            // Toggle functionality
+            let isExpanded = false;
+            nestedToggle.onclick = () => {
+              isExpanded = !isExpanded;
+              nestedContainer.style.display = isExpanded ? 'block' : 'none';
+              toggleIcon.textContent = isExpanded ? 'expand_less' : 'expand_more';
+            };
+            
+            commentsSection.appendChild(nestedToggle);
+            commentsSection.appendChild(nestedContainer);
+          }
+        } else {
+          // Regular comments structure for photos
+          const comments = data.comments || [];
+          comments.forEach(comment => {
+            const commentDiv = createCommentElement(comment);
+            commentsSection.appendChild(commentDiv);
+          });
+        }
+        
+        interactionSection.appendChild(commentsSection);
+      })
+      .catch(err => console.error('Error loading comments:', err));
+    }
+
+    function createCommentElement(comment) {
+      const commentDiv = document.createElement('div');
+      commentDiv.style.cssText = 'margin-bottom: 8px; padding: 8px; background: var(--md-surface-variant); border-radius: 8px; display: flex; gap: 8px; align-items: flex-start; font-size: 11px;';
+      
+      // Profile picture on the left
+      const profilePicHtml = comment.userProfilePicture 
+        ? `<img src="/uploads/profile_pictures/${comment.userProfilePicture}" alt="Profile" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgiIGhlaWdodD0iMjgiIHZpZXdCb3g9IjAgMCAyOCAyOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTQiIGN5PSIxNCIgcj0iMTQiIGZpbGw9IiNlMGUwZTAiLz4KPHA+PC9wPgo8L3N2Zz4='">`
+        : '<div style="width: 28px; height: 28px; border-radius: 50%; background: var(--md-outline); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-icons" style="font-size: 14px; color: var(--md-on-surface);">person</span></div>';
+      
+      // Episode/Photo image on the right (if available)
+      let rightImageHtml = '';
+      if (comment.photoUrl) {
+        rightImageHtml = `<img src="/get_photo_from_url?url=${encodeURIComponent(comment.photoUrl)}" alt="Photo" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; cursor: pointer; flex-shrink: 0;" onclick="openPhotoInMemory(${comment.photoId || 'null'}, '${comment.photoUrl}', event)">`;
+      } else if (comment.episodePhoto) {
+        rightImageHtml = `<img src="/get_photo_from_url?url=${encodeURIComponent(comment.episodePhoto)}" alt="Episode" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; cursor: pointer; flex-shrink: 0;" onclick="openEpisodeInMemory(${comment.episodeId || 'null'}, event)">`;
+      }
+      
+      commentDiv.innerHTML = `
+        ${profilePicHtml}
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 500; margin-bottom: 2px; color: var(--md-primary); cursor: pointer;" onclick="viewUserProfileFromMemory(${comment.userId}, event)">
+            ${comment.userFullName || 'Unknown User'}
+          </div>
+          <div style="margin-bottom: 4px;">${comment.commentText}</div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 10px; color: #666;">
+            <button style="background: none; border: none; color: #666; cursor: pointer; font-size: 10px; display: flex; align-items: center; gap: 2px;" onclick="toggleCommentLike(${comment.commentId}, this)">
+              <span class="material-icons" style="font-size: 12px;">favorite_border</span><span>0</span>
+            </button>
+            <span>${formatTime(comment.createdAt)}</span>
+          </div>
+        </div>
+        ${rightImageHtml}
+      `;
+      
+      return commentDiv;
+    }
+
+    function openPhotoInMemory(photoId, photoUrl, event) {
+      event.stopPropagation();
+      event.preventDefault();
+      // Show full view of the image
+      showImageFullView(photoUrl);
+    }
+
+    function openEpisodeInMemory(episodeId, event) {
+      event.stopPropagation();
+      event.preventDefault();
+      // Get the episode photo and show full view instead of opening entire episode
+      const episodeImg = event.target;
+      const episodePhotoUrl = episodeImg.src.replace('/get_photo_from_url?url=', '').replace(window.location.origin, '');
+      const decodedUrl = decodeURIComponent(episodePhotoUrl);
+      showImageFullView(decodedUrl);
+    }
+
+    function showImageFullView(imageUrl) {
+      // Create full-screen image viewer
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed; 
+        top: 0; left: 0; 
+        width: 100%; height: 100%; 
+        background: rgba(0,0,0,0.9); 
+        z-index: 10000; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        cursor: pointer;
+      `;
+      
+      const img = document.createElement('img');
+      const fullImageUrl = imageUrl.startsWith('/get_photo_from_url') ? imageUrl : `/get_photo_from_url?url=${encodeURIComponent(imageUrl)}`;
+      img.src = fullImageUrl;
+      img.style.cssText = `
+        max-width: 90%; 
+        max-height: 90%; 
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      `;
+      
+      overlay.appendChild(img);
+      document.body.appendChild(overlay);
+      
+      // Close on click
+      overlay.onclick = () => document.body.removeChild(overlay);
+      
+      // Close on escape key
+      const closeHandler = (e) => {
+        if (e.key === 'Escape') {
+          document.body.removeChild(overlay);
+          document.removeEventListener('keydown', closeHandler);
+        }
+      };
+      document.addEventListener('keydown', closeHandler);
+    }
+
+    function viewUserProfileFromMemory(userId, event) {
+      event.stopPropagation();
+      event.preventDefault();
+      window.location.href = `user_profile.html?userId=${userId}`;
+    }
+
+    function createNestedCommentElement(comment, parentTargetType) {
+      const commentDiv = document.createElement('div');
+      commentDiv.style.padding = '8px 0';
+      commentDiv.style.borderBottom = '1px solid #f0f0f0';
+      commentDiv.style.fontSize = '11px';
+      commentDiv.style.display = 'flex';
+      commentDiv.style.gap = '8px';
+      
+      // Add thumbnail for photo/episode
+      const thumbnail = document.createElement('div');
+      thumbnail.style.width = '32px';
+      thumbnail.style.height = '32px';
+      thumbnail.style.borderRadius = '4px';
+      thumbnail.style.overflow = 'hidden';
+      thumbnail.style.flexShrink = '0';
+      thumbnail.style.backgroundColor = '#f0f0f0';
+      thumbnail.style.display = 'flex';
+      thumbnail.style.alignItems = 'center';
+      thumbnail.style.justifyContent = 'center';
+      
+      if (comment.photoUrl) {
+        const img = document.createElement('img');
+        img.src = `/get_photo_from_url?url=${encodeURIComponent(comment.photoUrl)}`;
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        img.onerror = () => {
+          thumbnail.innerHTML = '<span class="material-icons" style="font-size: 14px; color: #666;">photo</span>';
+        };
+        thumbnail.appendChild(img);
+      } else {
+        thumbnail.innerHTML = '<span class="material-icons" style="font-size: 14px; color: #666;">movie</span>';
+      }
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.style.flex = '1';
+      
+      const header = document.createElement('div');
+      header.style.display = 'flex';
+      header.style.alignItems = 'center';
+      header.style.gap = '4px';
+      header.style.marginBottom = '2px';
+      header.style.fontSize = '10px';
+      header.style.color = '#666';
+      
+      const author = document.createElement('span');
+      author.style.fontWeight = '500';
+      author.style.color = 'var(--md-primary)';
+      author.style.cursor = 'pointer';
+      author.textContent = comment.userFullName || 'Unknown User';
+      author.onclick = (e) => {
+        e.stopPropagation();
+        window.location.href = `user_profile.html?userId=${comment.userId}`;
+      };
+      
+      const source = document.createElement('span');
+      if (comment.episodeTitle) {
+        source.textContent = comment.photoUrl ? 
+          `• on photo in "${comment.episodeTitle}"` : 
+          `• on episode "${comment.episodeTitle}"`;
+      } else {
+        source.textContent = '• on photo';
+      }
+      
+      header.appendChild(author);
+      header.appendChild(source);
+      
+      const text = document.createElement('div');
+      text.style.marginBottom = '4px';
+      text.textContent = comment.commentText;
+      
+      const actions = document.createElement('div');
+      actions.style.display = 'flex';
+      actions.style.alignItems = 'center';
+      actions.style.gap = '8px';
+      actions.style.fontSize = '10px';
+      actions.style.color = '#666';
+      
+      const likeBtn = document.createElement('button');
+      likeBtn.style.background = 'none';
+      likeBtn.style.border = 'none';
+      likeBtn.style.color = '#666';
+      likeBtn.style.cursor = 'pointer';
+      likeBtn.style.fontSize = '10px';
+      likeBtn.style.display = 'flex';
+      likeBtn.style.alignItems = 'center';
+      likeBtn.style.gap = '2px';
+      likeBtn.innerHTML = `<span class="material-icons" style="font-size: 12px;">favorite_border</span><span>0</span>`;
+      likeBtn.onclick = () => toggleCommentLike(comment.commentId, likeBtn);
+      
+      const time = document.createElement('span');
+      time.textContent = formatTime(comment.createdAt);
+      
+      actions.appendChild(likeBtn);
+      actions.appendChild(time);
+      
+      contentDiv.appendChild(header);
+      contentDiv.appendChild(text);
+      contentDiv.appendChild(actions);
+      
+      commentDiv.appendChild(thumbnail);
+      commentDiv.appendChild(contentDiv);
+      
+      // Load comment likes
+      loadCommentLikes(comment.commentId, likeBtn);
+      
+      return commentDiv;
+    }
+
+    function postComment(targetType, targetId, commentText, interactionSection) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/comment', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=${targetType}&targetId=${targetId}&commentText=${encodeURIComponent(commentText)}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        // Reload comments
+        const commentsSection = interactionSection.querySelector('.comments-section');
+        if (commentsSection) {
+          commentsSection.remove();
+        }
+        loadComments(targetType, targetId, interactionSection);
+        
+        // Update comment count
+        const commentBtn = interactionSection.querySelector('.comment-btn .comment-count');
+        if (commentBtn) {
+          commentBtn.textContent = parseInt(commentBtn.textContent) + 1;
+        }
+      })
+      .catch(err => console.error('Error posting comment:', err));
+    }
+
+    function toggleCommentLike(commentId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/like', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=comment&targetId=${commentId}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('span:last-child');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.liked) {
+          likeBtn.style.color = '#b00020';
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.style.color = '#666';
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error toggling comment like:', err));
+    }
+
+    function loadCommentLikes(commentId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) return;
+
+      fetch(`/likes?targetType=comment&targetId=${commentId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('span:last-child');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.userLiked) {
+          likeBtn.style.color = '#b00020';
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.style.color = '#666';
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error loading comment likes:', err));
+    }
+
+    function formatTime(timestamp) {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+      
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      return date.toLocaleDateString();
+    }
 </script>
 </body>
 </html>

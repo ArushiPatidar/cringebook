@@ -4,241 +4,389 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Episode Photos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Episode Photos - CringeBook</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="notification-service.js"></script>
     <style>
-        body {
-          font-family: Arial, sans-serif;
-          background: #f0f2f5;
-          margin: 0;
-          padding: 0;
+        /* Material Design 3 Color Scheme and Components */
+        :root {
+          --md-primary: #3f51b5;
+          --md-primary-dark: #303f9f;
+          --md-primary-light: #5c6bc0;
+          --md-secondary: #03dac6;
+          --md-surface: #ffffff;
+          --md-surface-variant: #f5f5f5;
+          --md-background: #fafafa;
+          --md-error: #b00020;
+          --md-on-primary: #ffffff;
+          --md-on-surface: #000000;
+          --md-on-background: #000000;
+          --md-outline: #e0e0e0;
+          --md-outline-variant: #f0f0f0;
+          --md-border-radius-small: 8px;
+          --md-border-radius-medium: 12px;
+          --md-border-radius-large: 16px;
+          --md-elevation-1: 0px 1px 3px rgba(0, 0, 0, 0.12), 0px 1px 2px rgba(0, 0, 0, 0.24);
+          --md-elevation-2: 0px 3px 6px rgba(0, 0, 0, 0.16), 0px 3px 6px rgba(0, 0, 0, 0.23);
         }
 
-        .topbar {
-          background-color: #3f51b5;
-          color: white;
-          padding: 15px 20px;
-          font-size: 20px;
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          background-color: var(--md-background);
+          color: var(--md-on-background);
+          margin: 0;
+          padding: 0;
+          line-height: 1.5;
+        }
+
+        .md-top-app-bar {
+          background-color: var(--md-primary);
+          color: var(--md-on-primary);
+          padding: 16px 24px;
+          box-shadow: var(--md-elevation-1);
           display: flex;
+          align-items: center;
           justify-content: space-between;
+          position: sticky;
+          top: 0;
+          z-index: 1000;
+        }
+
+        .md-top-app-bar-title {
+          font-size: 22px;
+          font-weight: 500;
+          letter-spacing: 0.15px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .md-top-app-bar-actions {
+          display: flex;
+          gap: 8px;
           align-items: center;
         }
 
-        .topbar button {
-          background-color: white;
-          color: #3f51b5;
-          border: none;
-          padding: 8px 12px;
-          border-radius: 6px;
-          font-size: 14px;
-          cursor: pointer;
-        }
-
-        .topbar button:hover {
-          background-color: #e0e0e0;
-        }
-
-        .container {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 15px;
+        .md-button {
+          display: inline-flex;
+          align-items: center;
           justify-content: center;
-          padding: 20px;
+          padding: 10px 16px;
+          border: none;
+          border-radius: var(--md-border-radius-large);
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 20px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-decoration: none;
+          min-height: 40px;
+          gap: 4px;
+        }
+
+        .md-button-text {
+          background-color: transparent;
+          color: var(--md-on-primary);
+        }
+
+        .md-button-text:hover {
+          background-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .md-button-filled {
+          background-color: white;
+          color: var(--md-primary);
+        }
+
+        .md-button-filled:hover {
+          background-color: #f5f5f5;
+          box-shadow: var(--md-elevation-1);
+        }
+
+        .md-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 24px;
+        }
+
+        .md-grid {
+          display: grid;
+          gap: 20px;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         }
 
         .photo-thumb {
-          width: 250px;
-          height: 180px;
+          width: 100%;
+          height: 240px;
           object-fit: cover;
-          border-radius: 10px;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+          border-radius: var(--md-border-radius-medium);
           cursor: pointer;
-          transition: transform 0.2s ease-in-out;
+          transition: all 0.2s ease;
         }
 
-        .photo-thumb:hover {
-          transform: scale(1.03);
+        .photo-card {
+          background: var(--md-surface);
+          border-radius: var(--md-border-radius-medium);
+          box-shadow: var(--md-elevation-1);
+          overflow: hidden;
+          transition: all 0.2s ease;
+        }
+
+        .photo-card:hover {
+          transform: translateY(-2px);
+          box-shadow: var(--md-elevation-2);
+        }
+
+        .photo-interaction {
+          padding: 12px 16px;
+          border-top: 1px solid var(--md-outline-variant);
+        }
+
+        .interaction-bar {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+
+        .interaction-btn {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          padding: 6px 10px;
+          border: 1px solid var(--md-outline);
+          border-radius: var(--md-border-radius-small);
+          background: transparent;
+          color: var(--md-on-surface);
+          font-size: 12px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .interaction-btn:hover {
+          background-color: var(--md-surface-variant);
+        }
+
+        .interaction-btn.liked {
+          color: var(--md-error);
+          border-color: var(--md-error);
+        }
+
+        .interaction-btn.liked .material-icons {
+          color: var(--md-error);
+        }
+
+        .interaction-btn .material-icons {
+          font-size: 16px;
         }
 
         .message {
           text-align: center;
-          margin-top: 30px;
-          font-weight: bold;
-          color: red;
+          padding: 48px 24px;
+          color: #666;
+          background: var(--md-surface-variant);
+          border-radius: var(--md-border-radius-medium);
+          margin: 24px 0;
         }
 
-        /* Lightbox */
-<!--        .lightbox {-->
-<!--          position: fixed;-->
-<!--          top: 0; left: 0;-->
-<!--          width: 100%; height: 100%;-->
-<!--          background: rgba(0,0,0,0.8);-->
-<!--          display: none;-->
-<!--          justify-content: center;-->
-<!--          align-items: center;-->
-<!--          z-index: 9999;-->
-<!--          padding: 20px;-->
-<!--          box-sizing: border-box;-->
-<!--        }-->
+        .error-message {
+          color: var(--md-error);
+          background: #ffebee;
+        }
 
-<!--&lt;!&ndash;        .lightbox img {&ndash;&gt;-->
-<!--&lt;!&ndash;          max-width: 90%;&ndash;&gt;-->
-<!--&lt;!&ndash;          max-height: 90%;&ndash;&gt;-->
-<!--&lt;!&ndash;          border-radius: 10px;&ndash;&gt;-->
-<!--&lt;!&ndash;        }&ndash;&gt;-->
-<!--        .lightbox-content {-->
-<!--          display: flex;-->
-<!--          flex-direction: column;-->
-<!--          align-items: center;-->
-<!--          max-height: 90%;-->
-<!--          max-width: 90%;-->
-<!--        }-->
-<!--        .lightbox img {-->
-<!--          max-height: 80vh;-->
-<!--          max-width: 90vw;-->
-<!--          object-fit: contain;-->
-<!--          border-radius: 12px;-->
-<!--        }-->
-<!--        #photoCounter {-->
-<!--          color: white;-->
-<!--          font-size: 18px;-->
-<!--          margin-top: 10px;-->
-<!--        }-->
-<!--        .nav-btn {-->
-<!--          position: absolute;-->
-<!--          top: 50%;-->
-<!--          transform: translateY(-50%);-->
-<!--          background: white;-->
-<!--          color: black;-->
-<!--          border: none;-->
-<!--          font-size: 18px;-->
-<!--          padding: 8px 14px;-->
-<!--          cursor: pointer;-->
-<!--          border-radius: 6px;-->
-<!--        }-->
+        .loading-message {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
 
-<!--        .nav-left {-->
-<!--          left: 30px;-->
-<!--        }-->
+        /* Lightbox styles */
+        .lightbox {
+          position: fixed;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          background: rgba(0,0,0,0.95);
+          display: none;
+          justify-content: center;
+          align-items: center;
+          z-index: 9999;
+          overflow: hidden;
+        }
 
-<!--        .nav-right {-->
-<!--          right: 30px;-->
-<!--        }-->
+        .lightbox-content {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          height: 100%;
+          width: 100%;
+          justify-content: center;
+          padding: 20px;
+        }
 
-<!--        .close-btn {-->
-<!--          position: absolute;-->
-<!--          top: 20px;-->
-<!--          right: 30px;-->
-<!--          background: red;-->
-<!--          color: white;-->
-<!--          border: none;-->
-<!--          padding: 8px 12px;-->
-<!--          border-radius: 6px;-->
-<!--          cursor: pointer;-->
-<!--        }-->
+        .lightbox img {
+          max-height: calc(100vh - 120px);
+          max-width: 95vw;
+          object-fit: contain;
+          border-radius: var(--md-border-radius-medium);
+          box-shadow: var(--md-elevation-2);
+        }
 
-    .lightbox {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.9);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  overflow: hidden;
-}
+        #photoCounter {
+          color: white;
+          font-size: 18px;
+          margin-top: 20px;
+          padding: 8px 16px;
+          background: rgba(0,0,0,0.5);
+          border-radius: var(--md-border-radius-large);
+        }
 
-.lightbox-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 100%;
-  width: 100%;
-  justify-content: center;
-}
+        .nav-btn {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          background: rgba(255,255,255,0.9);
+          color: var(--md-primary);
+          border: none;
+          font-size: 18px;
+          padding: 12px 16px;
+          cursor: pointer;
+          border-radius: 50%;
+          width: 56px;
+          height: 56px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        }
 
-.lightbox img {
-  height: calc(100vh - 100px); /* take nearly full height */
-  width: auto;
-  max-width: 95vw;
-  object-fit: contain;
-  border-radius: 12px;
-}
+        .nav-btn:hover {
+          background: white;
+          box-shadow: var(--md-elevation-2);
+        }
 
-#photoCounter {
-  color: white;
-  font-size: 18px;
-  margin-top: 10px;
-}
+        .nav-left {
+          left: 30px;
+        }
 
-/* Nav + Close Buttons */
-.nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: white;
-  color: black;
-  border: none;
-  font-size: 18px;
-  padding: 8px 14px;
-  cursor: pointer;
-  border-radius: 6px;
-}
+        .nav-right {
+          right: 30px;
+        }
 
-.nav-left {
-  left: 30px;
-}
+        .close-btn {
+          position: absolute;
+          top: 20px;
+          right: 30px;
+          background: rgba(255,255,255,0.9);
+          color: var(--md-primary);
+          border: none;
+          padding: 12px;
+          border-radius: 50%;
+          cursor: pointer;
+          width: 48px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+        }
 
-.nav-right {
-  right: 30px;
-}
+        .close-btn:hover {
+          background: white;
+          box-shadow: var(--md-elevation-2);
+        }
 
-.close-btn {
-  position: absolute;
-  top: 20px;
-  right: 30px;
-  background: red;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
+        @media (max-width: 768px) {
+          .md-container {
+            padding: 16px;
+          }
+          
+          .md-grid {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+          }
+          
+          .photo-thumb {
+            height: 200px;
+          }
+          
+          .md-top-app-bar {
+            padding: 12px 16px;
+          }
+          
+          .md-top-app-bar-title {
+            font-size: 20px;
+          }
+          
+          .nav-btn {
+            width: 48px;
+            height: 48px;
+            padding: 8px;
+          }
+          
+          .nav-left {
+            left: 10px;
+          }
+          
+          .nav-right {
+            right: 10px;
+          }
+          
+          .close-btn {
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+          }
+        }
     </style>
 </head>
 <body>
 
-<div class="topbar">
-    <span>📷 Episode Photos</span>
-    <div>
-        <button onclick="goBackToEpisodes()">🔙 Back to Episodes</button>
-        <button onclick="goToAddPhoto()">➕ Add Photo</button>
+<div class="md-top-app-bar">
+    <div class="md-top-app-bar-title">
+        <span class="material-icons">photo_library</span>
+        Episode Photos
+    </div>
+    <div class="md-top-app-bar-actions">
+        <button onclick="goBackToEpisodes()" class="md-button md-button-text">
+            <span class="material-icons">arrow_back</span>
+            Back to Episodes
+        </button>
+        <button id="addPhotoBtn" onclick="goToAddPhoto()" class="md-button md-button-filled">
+            <span class="material-icons">add_a_photo</span>
+            Add Photo
+        </button>
     </div>
 </div>
 
-<div class="container" id="photoContainer"></div>
-<div class="message" id="message"></div>
+<div class="md-container">
+    <div class="md-grid" id="photoContainer"></div>
+    <div class="message" id="message" style="display: none;"></div>
+</div>
 
 <!-- Lightbox -->
-<!--<div class="lightbox" id="lightbox">-->
-<!--    <button class="close-btn" onclick="closeLightbox()">✖</button>-->
-<!--    <button class="nav-btn nav-left" onclick="navigate(-1)">⬅</button>-->
-<!--    <img id="lightboxImg" src="" alt="Full Photo">-->
-<!--    <div id="photoCounter"></div>-->
-<!--    <button class="nav-btn nav-right" onclick="navigate(1)">➡</button>-->
-<!--</div>-->
-
 <div class="lightbox" id="lightbox">
-    <button class="close-btn" onclick="closeLightbox()">✖</button>
+    <button class="close-btn" onclick="closeLightbox()">
+        <span class="material-icons">close</span>
+    </button>
 
     <div class="lightbox-content">
         <img id="lightboxImg" src="" alt="Full Photo">
         <div id="photoCounter"></div>
     </div>
 
-    <button class="nav-btn nav-left" onclick="navigate(-1)">⬅</button>
-    <button class="nav-btn nav-right" onclick="navigate(1)">➡</button>
+    <button class="nav-btn nav-left" onclick="navigate(-1)">
+        <span class="material-icons">chevron_left</span>
+    </button>
+    <button class="nav-btn nav-right" onclick="navigate(1)">
+        <span class="material-icons">chevron_right</span>
+    </button>
 </div>
 
 <script>
@@ -256,7 +404,7 @@
     }
 
     function photoUrl(filename) {
-      return `http://${window.location.host}/get_photo_from_url?url=${encodeURIComponent(filename)}`;
+      return `/get_photo_from_url?url=${encodeURIComponent(filename)}`;
     }
 
     function fetchPhotos() {
@@ -264,11 +412,11 @@
       const episodeId = getQueryParam("episodeId");
 
       if (!token || !episodeId) {
-        document.getElementById("message").textContent = "Missing token or episode ID.";
+        showMessage("Missing token or episode ID.", "error");
         return;
       }
 
-      fetch(`http://${window.location.host}/show_photos?episodeId=${episodeId}`, {
+      fetch(`/show_photos?episodeId=${episodeId}`, {
         headers: {
           "Authorization": token
         }
@@ -277,17 +425,30 @@
         if (!res.ok) throw new Error("Failed to load photos");
         return res.json();
       })
-      .then(photos => {
+      .then(data => {
+        const photos = data.photos || data; // Handle both old and new format
+        const isOwner = data.isOwner !== undefined ? data.isOwner : true; // Default to owner for backward compatibility
+        
         const container = document.getElementById("photoContainer");
         container.innerHTML = "";
 
+        // Hide add button if not owner
+        const addButton = document.getElementById("addPhotoBtn");
+        if (addButton) {
+          addButton.style.display = isOwner ? "flex" : "none";
+        }
+
         if (!photos || photos.length === 0) {
-          document.getElementById("message").textContent = "No photos found.";
+          showMessage("No photos found.", "info");
           return;
         }
 
         photos.forEach((photo, index) => {
           photoList.push(photo);
+
+          // Create photo card container
+          const photoCard = document.createElement("div");
+          photoCard.className = "photo-card";
 
           const img = document.createElement("img");
           img.className = "photo-thumb";
@@ -295,12 +456,69 @@
           img.alt = "Episode Photo";
           img.onclick = () => openLightbox(index);
 
-          container.appendChild(img);
+          // Create interaction section
+          const interactionDiv = document.createElement("div");
+          interactionDiv.className = "photo-interaction";
+          
+          const interactionBar = document.createElement("div");
+          interactionBar.className = "interaction-bar";
+          
+          // Like button
+          const likeBtn = document.createElement("button");
+          likeBtn.className = "interaction-btn like-btn";
+          likeBtn.innerHTML = `<span class="material-icons">favorite_border</span><span class="like-count">0</span>`;
+          likeBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleLike('photo', photo.photo_id, likeBtn);
+          };
+          
+          // Comment button
+          const commentBtn = document.createElement("button");
+          commentBtn.className = "interaction-btn comment-btn";
+          commentBtn.innerHTML = `<span class="material-icons">comment</span><span class="comment-count">0</span>`;
+          commentBtn.onclick = (e) => {
+            e.stopPropagation();
+            toggleComments('photo', photo.photo_id, interactionDiv);
+          };
+          
+          // View button
+          const viewBtn = document.createElement("button");
+          viewBtn.className = "interaction-btn view-btn";
+          viewBtn.innerHTML = `<span class="material-icons">fullscreen</span>View`;
+          viewBtn.onclick = (e) => {
+            e.stopPropagation();
+            openLightbox(index);
+          };
+          
+          interactionBar.appendChild(likeBtn);
+          interactionBar.appendChild(commentBtn);
+          interactionBar.appendChild(viewBtn);
+          interactionDiv.appendChild(interactionBar);
+          
+          photoCard.appendChild(img);
+          photoCard.appendChild(interactionDiv);
+          
+          // Load initial like/comment counts
+          loadInteractionData('photo', photo.photo_id, likeBtn, commentBtn);
+
+          container.appendChild(photoCard);
         });
       })
       .catch(err => {
-        document.getElementById("message").textContent = err.message;
+        showMessage(err.message, "error");
       });
+    }
+
+    function showMessage(text, type = "info") {
+      const messageEl = document.getElementById("message");
+      messageEl.innerHTML = `
+        <div class="loading-message">
+          <span class="material-icons">${type === "error" ? "error" : "info"}</span>
+          ${text}
+        </div>
+      `;
+      messageEl.className = `message ${type === "error" ? "error-message" : ""}`;
+      messageEl.style.display = "block";
     }
 
     function openLightbox(index) {
@@ -331,15 +549,306 @@
     function goBackToEpisodes() {
       const memoryId = sessionStorage.getItem("currentMemoryId");
       if (memoryId) {
-        window.location.href = `/frontend/show_episodes.html?memoryId=${memoryId}`;
+        window.location.href = `show_episodes.html?memoryId=${memoryId}`;
       }
     }
 
     function goToAddPhoto() {
       const episodeId = getQueryParam("episodeId");
       if (episodeId) {
-        window.location.href = `/frontend/add_photo.html?episodeId=${episodeId}`;
+        window.location.href = `add_photo.html?episodeId=${episodeId}`;
       }
+    }
+
+    // Interaction functions for likes and comments (copied from episodes page)
+    function loadInteractionData(targetType, targetId, likeBtn, commentBtn) {
+      const token = getTokenFromCookie();
+      if (!token) return;
+
+      // Load likes
+      fetch(`/likes?targetType=${targetType}&targetId=${targetId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('.like-count');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.userLiked) {
+          likeBtn.classList.add('liked');
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.classList.remove('liked');
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error loading likes:', err));
+
+      // Load comments count
+      fetch(`/comments?targetType=${targetType}&targetId=${targetId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = commentBtn.querySelector('.comment-count');
+        countSpan.textContent = data.commentCount || 0;
+      })
+      .catch(err => console.error('Error loading comments:', err));
+    }
+
+    function toggleLike(targetType, targetId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/like', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=${targetType}&targetId=${targetId}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('.like-count');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.liked) {
+          likeBtn.classList.add('liked');
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.classList.remove('liked');
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error toggling like:', err));
+    }
+
+    function toggleComments(targetType, targetId, photoInteractionDiv) {
+      const existingCommentsSection = photoInteractionDiv.querySelector('.comments-section');
+      
+      if (existingCommentsSection) {
+        existingCommentsSection.remove();
+        return;
+      }
+
+      loadComments(targetType, targetId, photoInteractionDiv);
+    }
+
+    function loadComments(targetType, targetId, photoInteractionDiv) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch(`/comments?targetType=${targetType}&targetId=${targetId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const commentsSection = document.createElement('div');
+        commentsSection.className = 'comments-section';
+        commentsSection.style.marginTop = '12px';
+        commentsSection.style.paddingTop = '12px';
+        commentsSection.style.borderTop = '1px solid var(--md-outline-variant)';
+        
+        // Add comment input area
+        const inputArea = document.createElement('div');
+        inputArea.style.display = 'flex';
+        inputArea.style.gap = '8px';
+        inputArea.style.marginBottom = '12px';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'Add a comment...';
+        input.style.flex = '1';
+        input.style.padding = '6px 8px';
+        input.style.border = '1px solid var(--md-outline)';
+        input.style.borderRadius = 'var(--md-border-radius-small)';
+        input.style.fontSize = '12px';
+        
+        const submitBtn = document.createElement('button');
+        submitBtn.textContent = 'Post';
+        submitBtn.style.padding = '6px 12px';
+        submitBtn.style.backgroundColor = 'var(--md-primary)';
+        submitBtn.style.color = 'var(--md-on-primary)';
+        submitBtn.style.border = 'none';
+        submitBtn.style.borderRadius = 'var(--md-border-radius-small)';
+        submitBtn.style.cursor = 'pointer';
+        submitBtn.style.fontSize = '12px';
+        submitBtn.onclick = () => {
+          if (input.value.trim()) {
+            postComment(targetType, targetId, input.value.trim(), photoInteractionDiv);
+            input.value = '';
+          }
+        };
+        
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter' && input.value.trim()) {
+            postComment(targetType, targetId, input.value.trim(), photoInteractionDiv);
+            input.value = '';
+          }
+        });
+        
+        inputArea.appendChild(input);
+        inputArea.appendChild(submitBtn);
+        commentsSection.appendChild(inputArea);
+        
+        // Add existing comments
+        const comments = data.comments || [];
+        comments.forEach(comment => {
+          const commentDiv = createCommentElement(comment);
+          commentsSection.appendChild(commentDiv);
+        });
+        
+        photoInteractionDiv.appendChild(commentsSection);
+      })
+      .catch(err => console.error('Error loading comments:', err));
+    }
+
+    function createCommentElement(comment) {
+      const commentDiv = document.createElement('div');
+      commentDiv.style.cssText = 'margin-bottom: 8px; padding: 8px; background: var(--md-surface-variant); border-radius: 8px; display: flex; gap: 8px; align-items: flex-start; font-size: 11px;';
+      
+      // Profile picture on the left
+      const profilePicHtml = comment.userProfilePicture 
+        ? `<img src="/uploads/profile_pictures/${comment.userProfilePicture}" alt="Profile" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgiIGhlaWdodD0iMjgiIHZpZXdCb3g9IjAgMCAyOCAyOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTQiIGN5PSIxNCIgcj0iMTQiIGZpbGw9IiNlMGUwZTAiLz4KPHA+PC9wPgo8L3N2Zz4='">`
+        : '<div style="width: 28px; height: 28px; border-radius: 50%; background: var(--md-outline); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-icons" style="font-size: 14px; color: var(--md-on-surface);">person</span></div>';
+      
+      commentDiv.innerHTML = `
+        ${profilePicHtml}
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 500; margin-bottom: 2px; color: var(--md-primary); cursor: pointer;" onclick="window.location.href='user_profile.html?userId=${comment.userId}'">
+            ${comment.userFullName || 'Unknown User'}
+          </div>
+          <div style="margin-bottom: 4px;">${comment.commentText}</div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 10px; color: #666;">
+            <button onclick="toggleCommentLike(${comment.commentId}, this)" style="background: none; border: none; color: #666; cursor: pointer; font-size: 10px; display: flex; align-items: center; gap: 2px;">
+              <span class="material-icons" style="font-size: 12px;">favorite_border</span>
+              <span>0</span>
+            </button>
+            <span>${formatTime(comment.createdAt)}</span>
+          </div>
+        </div>
+      `;
+      
+      // Load comment likes
+      const likeBtn = commentDiv.querySelector('button');
+      loadCommentLikes(comment.commentId, likeBtn);
+      
+      return commentDiv;
+      
+      return commentDiv;
+    }
+
+    function postComment(targetType, targetId, commentText, photoInteractionDiv) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/comment', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=${targetType}&targetId=${targetId}&commentText=${encodeURIComponent(commentText)}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        // Reload comments
+        const commentsSection = photoInteractionDiv.querySelector('.comments-section');
+        if (commentsSection) {
+          commentsSection.remove();
+        }
+        loadComments(targetType, targetId, photoInteractionDiv);
+        
+        // Update comment count
+        const commentBtn = photoInteractionDiv.querySelector('.comment-btn .comment-count');
+        if (commentBtn) {
+          commentBtn.textContent = parseInt(commentBtn.textContent) + 1;
+        }
+      })
+      .catch(err => console.error('Error posting comment:', err));
+    }
+
+    function toggleCommentLike(commentId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      fetch('/like', {
+        method: 'POST',
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `targetType=comment&targetId=${commentId}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('span:last-child');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.liked) {
+          likeBtn.style.color = 'var(--md-error)';
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.style.color = '#666';
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error toggling comment like:', err));
+    }
+
+    function loadCommentLikes(commentId, likeBtn) {
+      const token = getTokenFromCookie();
+      if (!token) return;
+
+      fetch(`/likes?targetType=comment&targetId=${commentId}`, {
+        headers: { 'Authorization': token }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const countSpan = likeBtn.querySelector('span:last-child');
+        const icon = likeBtn.querySelector('.material-icons');
+        
+        countSpan.textContent = data.likeCount || 0;
+        if (data.userLiked) {
+          likeBtn.style.color = 'var(--md-error)';
+          icon.textContent = 'favorite';
+        } else {
+          likeBtn.style.color = '#666';
+          icon.textContent = 'favorite_border';
+        }
+      })
+      .catch(err => console.error('Error loading comment likes:', err));
+    }
+
+    function formatTime(timestamp) {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+      
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      return date.toLocaleDateString();
     }
 
     window.onload = fetchPhotos;

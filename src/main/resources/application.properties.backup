@@ -10,18 +10,14 @@ spring.servlet.multipart.max-file-size=100MB
 spring.servlet.multipart.max-request-size=100MB
 
 # HTTPS Configuration
-server.port=443
+server.port=8443
 server.address=0.0.0.0
 server.ssl.key-store=classpath:keystore.p12
 server.ssl.key-store-password=changeit
 server.ssl.keyStoreType=PKCS12
 server.ssl.keyAlias=cringebook
 
-# Additional HTTP configuration for redirects if needed
+# Redirect HTTP to HTTPS
 server.require-ssl=false
+# Additional HTTP port for redirect (if needed)
 server.http.port=8080
-
-# Additional server configuration
-server.connection-timeout=20000
-server.tomcat.connection-timeout=20000
-server.tomcat.max-http-post-size=100MB
