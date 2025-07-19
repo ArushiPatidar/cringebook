@@ -367,8 +367,8 @@
                 <div class="memory-header">
                     <div class="memory-avatar">${userInitials}</div>
                     <div class="memory-user-info">
-                        <div class="memory-user-name">${escapeHtml(memory.userFullName || memory.userName || 'Unknown User')}</div>
-                        <div class="memory-date">@${escapeHtml(memory.userName || 'unknown')}</div>
+                        <div class="memory-user-name" style="cursor: pointer; color: var(--md-primary);" onclick="viewUserProfile(${memory.userId}, event)">${escapeHtml(memory.userFullName || memory.userName || 'Unknown User')}</div>
+                        <div class="memory-date" style="cursor: pointer; color: var(--md-primary);" onclick="viewUserProfile(${memory.userId}, event)">@${escapeHtml(memory.userName || 'unknown')}</div>
                     </div>
                 </div>
                 ${memory.photo ? 
@@ -577,6 +577,12 @@
 
     // Event listeners
     window.onload = () => loadFeed();
+    
+    function viewUserProfile(userId, event) {
+        event.stopPropagation();
+        event.preventDefault();
+        window.location.href = `user_profile.html?userId=${userId}`;
+    }
     
     document.getElementById("loadMoreBtn").onclick = () => {
         loadFeed(currentPage + 1, true);

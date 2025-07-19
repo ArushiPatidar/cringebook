@@ -241,4 +241,108 @@ public class InteractionController {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("/nested-comments")
+    public ResponseEntity<Map<String, Object>> getNestedComments(@RequestHeader(HttpHeaders.AUTHORIZATION) String jwtToken,
+                                                                @RequestParam("targetType") String targetType,
+                                                                @RequestParam("targetId") Integer targetId) {
+        Integer userId = authentication.getIdFromToken(jwtToken);
+        if (userId == 0) {
+            return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+        }
+
+        try {
+            Map<String, Object> response = new HashMap<>();
+            
+            if ("memory".equals(targetType)) {
+                // Get direct memory comments
+                List<Comment> directComments = commentRepo.findCommentsForTarget("memory", targetId);
+                response.put("directComments", enrichCommentsWithUserInfo(directComments));
+                
+                // Get episode comments within this memory
+                List<Map<String, Object>> episodeComments = new java.util.ArrayList<>();
+                List<com.cringebook.app.entity.Episode> episodes = episodeRepo.findByMemoryId(targetId);
+                for (com.cringebook.app.entity.Episode episode : episodes) {
+                    List<Comment> epComments = commentRepo.findCommentsForTarget("episode", episode.getEpisodeId());
+                    for (Comment comment : epComments) {
+                        Map<String, Object> enriched = createEnrichedComment(comment);
+                        enriched.put("episodeTitle", episode.getTitle());
+                        enriched.put("episodePhoto", episode.getPhoto());
+                        episodeComments.add(enriched);
+                    }
+                    
+                    // Get photo comments within this episode
+                    List<com.cringebook.app.entity.Photo> photos = photoRepo.findByEpisodeId(episode.getEpisodeId());
+                    for (com.cringebook.app.entity.Photo photo : photos) {
+                        List<Comment> photoComments = commentRepo.findCommentsForTarget("photo", photo.getPhoto_id());
+                        for (Comment comment : photoComments) {
+                            Map<String, Object> enriched = createEnrichedComment(comment);
+                            enriched.put("episodeTitle", episode.getTitle());
+                            enriched.put("photoUrl", photo.getPhotoUrl());
+                            enriched.put("photoCaption", ""); // Photo entity doesn't have caption
+                            episodeComments.add(enriched);
+                        }
+                    }
+                }
+                response.put("nestedComments", episodeComments);
+                
+            } else if ("episode".equals(targetType)) {
+                // Get direct episode comments
+                List<Comment> directComments = commentRepo.findCommentsForTarget("episode", targetId);
+                response.put("directComments", enrichCommentsWithUserInfo(directComments));
+                
+                // Get photo comments within this episode
+                List<Map<String, Object>> photoComments = new java.util.ArrayList<>();
+                List<com.cringebook.app.entity.Photo> photos = photoRepo.findByEpisodeId(targetId);
+                for (com.cringebook.app.entity.Photo photo : photos) {
+                    List<Comment> pComments = commentRepo.findCommentsForTarget("photo", photo.getPhoto_id());
+                    for (Comment comment : pComments) {
+                        Map<String, Object> enriched = createEnrichedComment(comment);
+                        enriched.put("photoUrl", photo.getPhotoUrl());
+                        enriched.put("photoCaption", ""); // Photo entity doesn't have caption
+                        photoComments.add(enriched);
+                    }
+                }
+                response.put("nestedComments", photoComments);
+                
+            } else {
+                // For photos, just return direct comments
+                List<Comment> directComments = commentRepo.findCommentsForTarget(targetType, targetId);
+                response.put("directComments", enrichCommentsWithUserInfo(directComments));
+                response.put("nestedComments", new java.util.ArrayList<>());
+            }
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private List<Map<String, Object>> enrichCommentsWithUserInfo(List<Comment> comments) {
+        List<Map<String, Object>> enrichedComments = new java.util.ArrayList<>();
+        for (Comment comment : comments) {
+            enrichedComments.add(createEnrichedComment(comment));
+        }
+        return enrichedComments;
+    }
+
+    private Map<String, Object> createEnrichedComment(Comment comment) {
+        Map<String, Object> enrichedComment = new HashMap<>();
+        enrichedComment.put("commentId", comment.getCommentId());
+        enrichedComment.put("userId", comment.getUserId());
+        enrichedComment.put("commentText", comment.getCommentText());
+        enrichedComment.put("createdAt", comment.getCreatedAt());
+        
+        // Add user information
+        var user = userRepo.findByUserId(comment.getUserId());
+        if (user != null) {
+            enrichedComment.put("userName", user.getUserName());
+            enrichedComment.put("userFullName", user.getName());
+        } else {
+            enrichedComment.put("userName", "unknown");
+            enrichedComment.put("userFullName", "Unknown User");
+        }
+        
+        return enrichedComment;
+    }
 }

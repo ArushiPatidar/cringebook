@@ -467,8 +467,8 @@
 <!--            window.location.href = `/frontend/show_episodes.html?memoryId=${memory.memoryId}`;-->
 <!--          };-->
         card.addEventListener("click", (e) => {
-          // Ignore clicks if they happened inside a button or menu
-          if (e.target.closest(".menu") || e.target.closest(".menu-button")) return;
+          // Ignore clicks if they happened inside a button, menu, or interaction section
+          if (e.target.closest(".menu") || e.target.closest(".menu-button") || e.target.closest(".interaction-btn") || e.target.closest(".comment-input") || e.target.closest(".comments-list")) return;
 
           sessionStorage.setItem("currentMemoryId", memory.memoryId);
           window.location.href = `/frontend/show_episodes.html?memoryId=${memory.memoryId}`;

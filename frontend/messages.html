@@ -471,6 +471,14 @@
         .then(data => {
             currentUserId = data.userId;
             loadConversations(); // Load conversations after getting user ID
+            
+            // Check if friendId is provided in URL to auto-open chat
+            const urlParams = new URLSearchParams(window.location.search);
+            const friendId = urlParams.get('friendId');
+            if (friendId) {
+                // Wait a moment for conversations to load, then open the specific chat
+                setTimeout(() => openChat(parseInt(friendId)), 500);
+            }
         })
         .catch(err => {
             console.error('Error loading user ID:', err);
