@@ -468,7 +468,7 @@
 <!--          };-->
         card.addEventListener("click", (e) => {
           // Ignore clicks if they happened inside a button, menu, or interaction section
-          if (e.target.closest(".menu") || e.target.closest(".menu-button") || e.target.closest(".interaction-btn") || e.target.closest(".comment-input") || e.target.closest(".comments-list")) return;
+          if (e.target.closest(".menu") || e.target.closest(".menu-button") || e.target.closest(".interaction-btn") || e.target.closest(".comment-input") || e.target.closest(".comments-list") || e.target.closest(".comments-section")) return;
 
           sessionStorage.setItem("currentMemoryId", memory.memoryId);
           window.location.href = `/frontend/show_episodes.html?memoryId=${memory.memoryId}`;

@@ -1,6 +1,7 @@
 package com.cringebook.app.config;
 
 import com.cringebook.app.controllers.Authentication;
+import com.cringebook.app.controllers.MessageWebSocketController;
 import com.cringebook.app.controllers.VideoCallController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -21,9 +22,16 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Autowired
     private VideoCallController videoCallController;
 
+    @Autowired
+    private MessageWebSocketController messageWebSocketController;
+
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(videoCallController, "/video-call-ws")
+                .setAllowedOrigins("*")
+                .addInterceptors(new AuthenticationInterceptor());
+        
+        registry.addHandler(messageWebSocketController, "/messages-ws")
                 .setAllowedOrigins("*")
                 .addInterceptors(new AuthenticationInterceptor());
     }

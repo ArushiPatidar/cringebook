@@ -573,8 +573,10 @@
         // Load chat
         loadChat(friendId);
         
-        // Start real-time polling for this conversation
-        startConversationPolling(friendId);
+        // Connect WebSocket if not already connected
+        if (!isSocketConnected) {
+            connectMessageWebSocket();
+        }
     }
 
     function loadChat(friendId) {
@@ -644,35 +646,11 @@
         
         if (!messageText || !currentChatFriendId) return;
 
-        const token = getTokenFromCookie();
-        if (!token) {
-            window.location.href = 'login.html';
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('receiverId', currentChatFriendId);
-        formData.append('messageText', messageText);
-
-        fetch('/api/messages/send', {
-            method: 'POST',
-            headers: {
-                'Authorization': token
-            },
-            body: formData
-        })
-        .then(res => {
-            if (!res.ok) throw new Error('Failed to send message');
-            return res.json();
-        })
-        .then(data => {
-            input.value = '';
-            loadChat(currentChatFriendId); // Reload to show new message
-        })
-        .catch(err => {
-            console.error('Error sending message:', err);
-            alert('Failed to send message');
-        });
+        // Clear input immediately for better UX
+        input.value = '';
+        
+        // Send via WebSocket
+        sendMessageViaWebSocket(currentChatFriendId, messageText);
     }
 
     function getCurrentUserId() {
@@ -726,56 +704,144 @@
         window.open(`video_call.html?friendId=${currentChatFriendId}&friendName=${encodeURIComponent(friendName)}&initiator=true`, '_blank');
     }
 
-    // Auto-refresh conversations every 30 seconds
-    setInterval(loadConversations, 30000);
+    // WebSocket for real-time messaging
+    let messageSocket = null;
+    let isSocketConnected = false;
     
-    // Real-time messaging for active conversation
-    let conversationPollingInterval;
-    let lastMessageCount = 0;
-    
-    function startConversationPolling(friendId) {
-        stopConversationPolling();
-        conversationPollingInterval = setInterval(() => {
-            if (currentChatFriendId === friendId) {
-                refreshCurrentConversation(friendId);
-            }
-        }, 5000); // Poll every 5 seconds when chat is open
-    }
-    
-    function stopConversationPolling() {
-        if (conversationPollingInterval) {
-            clearInterval(conversationPollingInterval);
-            conversationPollingInterval = null;
+    function connectMessageWebSocket() {
+        const token = getTokenFromCookie();
+        if (!token || isSocketConnected) return;
+        
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/messages-ws?token=${encodeURIComponent(token)}`;
+        
+        try {
+            messageSocket = new WebSocket(wsUrl);
+            
+            messageSocket.onopen = function() {
+                console.log('Message WebSocket connected');
+                isSocketConnected = true;
+            };
+            
+            messageSocket.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                } catch (e) {
+                    console.error('Error parsing WebSocket message:', e);
+                }
+            };
+            
+            messageSocket.onclose = function() {
+                console.log('Message WebSocket disconnected');
+                isSocketConnected = false;
+                // Try to reconnect after 3 seconds
+                setTimeout(() => {
+                    if (!isSocketConnected) {
+                        connectMessageWebSocket();
+                    }
+                }, 3000);
+            };
+            
+            messageSocket.onerror = function(error) {
+                console.error('Message WebSocket error:', error);
+                isSocketConnected = false;
+            };
+        } catch (error) {
+            console.error('Failed to create WebSocket connection:', error);
+            isSocketConnected = false;
         }
     }
     
-    function refreshCurrentConversation(friendId) {
-        const token = getTokenFromCookie();
-        if (!token) return;
+    function handleWebSocketMessage(data) {
+        switch (data.type) {
+            case 'new_message':
+                // Handle incoming message
+                if (currentChatFriendId === data.senderId) {
+                    // If we're viewing the chat with the sender, reload the chat
+                    loadChat(currentChatFriendId);
+                }
+                // Refresh conversation list to update unread counts
+                loadConversations();
+                break;
+                
+            case 'message_sent':
+                // Message was successfully sent, reload current chat
+                if (currentChatFriendId === data.receiverId) {
+                    loadChat(currentChatFriendId);
+                }
+                // Refresh conversation list
+                loadConversations();
+                break;
+                
+            case 'message_read':
+                // Someone read our message, could update read status UI here
+                console.log('Message read:', data.messageId);
+                break;
+        }
+    }
+    
+    function sendMessageViaWebSocket(receiverId, messageText) {
+        if (!messageSocket || !isSocketConnected) {
+            console.log('WebSocket not connected, falling back to HTTP');
+            return sendMessageViaHTTP(receiverId, messageText);
+        }
         
-        fetch(`/api/messages/conversation/${friendId}`, {
-            method: 'GET',
+        const message = {
+            type: 'send_message',
+            receiverId: receiverId,
+            messageText: messageText
+        };
+        
+        try {
+            messageSocket.send(JSON.stringify(message));
+            return true;
+        } catch (error) {
+            console.error('Error sending message via WebSocket:', error);
+            return sendMessageViaHTTP(receiverId, messageText);
+        }
+    }
+    
+    function sendMessageViaHTTP(receiverId, messageText) {
+        const token = getTokenFromCookie();
+        if (!token) {
+            window.location.href = 'login.html';
+            return false;
+        }
+
+        const formData = new FormData();
+        formData.append('receiverId', receiverId);
+        formData.append('messageText', messageText);
+
+        fetch('/api/messages/send', {
+            method: 'POST',
             headers: {
                 'Authorization': token
-            }
+            },
+            body: formData
         })
         .then(res => {
-            if (!res.ok) return;
+            if (!res.ok) throw new Error('Failed to send message');
             return res.json();
         })
         .then(data => {
-            const messages = data.messages || [];
-            if (messages.length !== lastMessageCount) {
-                displayMessages(messages);
-                lastMessageCount = messages.length;
-                // Also refresh conversation list to update unread counts
-                loadConversations();
-            }
+            loadChat(currentChatFriendId); // Reload to show new message
         })
-        .catch(err => console.error('Error refreshing conversation:', err));
+        .catch(err => {
+            console.error('Error sending message:', err);
+            alert('Failed to send message');
+        });
+        
+        return true;
     }
 
-    window.onload = loadCurrentUserId;
+    // Auto-refresh conversations every 30 seconds (fallback for offline users)
+    setInterval(loadConversations, 30000);
+
+    window.onload = function() {
+        loadCurrentUserId();
+        connectMessageWebSocket();
+    };
 </script>
 
 </body>
