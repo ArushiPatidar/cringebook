@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Call - CringeBook</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -223,12 +224,38 @@
           
           .controls {
             bottom: 20px;
+            gap: 15px; /* Reduce gap on mobile */
           }
           
           .control-btn {
             width: 50px;
             height: 50px;
             font-size: 20px;
+          }
+          
+          .call-info {
+            top: 10px;
+            left: 10px;
+            padding: 12px;
+            font-size: 14px;
+          }
+          
+          .incoming-call-card {
+            margin: 20px;
+            max-width: calc(100vw - 40px);
+          }
+          
+          /* Ensure controls are always visible on mobile when call is active */
+          .controls.mobile-visible {
+            display: flex !important;
+          }
+        }
+        
+        /* Add touch-friendly hover effects for mobile */
+        @media (max-width: 768px) and (hover: none) {
+          .control-btn:active {
+            transform: scale(0.95);
+            background-color: rgba(255, 255, 255, 0.3);
           }
         }
     </style>
@@ -293,6 +320,7 @@
     let friendName = null;
     let websocket = null;
     let currentUserId = null;
+    let currentUserName = null;
 
     // Get friend info from URL params
     const urlParams = new URLSearchParams(window.location.search);
@@ -313,6 +341,26 @@
         return match ? decodeURIComponent(match[2]) : null;
     }
 
+    async function getCurrentUserInfo() {
+        const token = getTokenFromCookie();
+        if (!token) return null;
+        
+        try {
+            const response = await fetch('/api/users/profile', {
+                headers: { 'Authorization': token }
+            });
+            
+            if (response.ok) {
+                const userDetails = await response.json();
+                currentUserName = userDetails.fullName || userDetails.username || 'User';
+                return userDetails;
+            }
+        } catch (error) {
+            console.error('Error getting current user info:', error);
+        }
+        return null;
+    }
+
     function getCurrentUserId() {
         const token = getTokenFromCookie();
         if (!token) return null;
@@ -328,6 +376,7 @@
     async function initializeCall() {
         try {
             currentUserId = getCurrentUserId();
+            await getCurrentUserInfo(); // Get current user's name
             if (!currentUserId) {
                 showError('Authentication required');
                 return;
@@ -357,7 +406,12 @@
                 remoteStream = event.streams[0];
                 document.getElementById('remoteVideo').srcObject = remoteStream;
                 document.getElementById('callStatus').style.display = 'none';
-                document.getElementById('controls').style.display = 'flex';
+                const controlsElement = document.getElementById('controls');
+                controlsElement.style.display = 'flex';
+                // Add mobile-visible class on mobile devices
+                if (window.innerWidth <= 768) {
+                    controlsElement.classList.add('mobile-visible');
+                }
                 startCallTimer();
             };
             
@@ -404,7 +458,7 @@
                 sendSignalingMessage({
                     type: 'call-request',
                     toUserId: friendId,
-                    fromUserName: 'You' // This should be current user's name
+                    fromUserName: currentUserName || 'User'
                 });
             }
         };

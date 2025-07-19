@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages - CringeBook</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -444,6 +445,7 @@
 
 <script>
     let currentChatFriendId = null;
+    window.currentChatFriendId = null; // Make it globally accessible
     let conversations = [];
     let currentUserId = null;
 
@@ -569,6 +571,7 @@
 
     function openChat(friendId) {
         currentChatFriendId = friendId;
+        window.currentChatFriendId = friendId; // Update global reference
         
         // Update UI
         document.getElementById('emptyChat').style.display = 'none';
@@ -849,6 +852,11 @@
         loadCurrentUserId();
         connectMessageWebSocket();
     };
+    
+    // Cleanup when page is unloaded
+    window.addEventListener('beforeunload', function() {
+        window.currentChatFriendId = null;
+    });
 </script>
 
 </body>

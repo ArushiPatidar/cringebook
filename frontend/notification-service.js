@@ -149,6 +149,12 @@ class NotificationService {
     }
 
     showMessageNotification(data) {
+        // Check if the chat with this specific user is currently open
+        if (window.currentChatFriendId && window.currentChatFriendId === data.senderId) {
+            // Don't show notification if chat with this user is open
+            return;
+        }
+        
         this.playMessageSound();
         
         const notification = this.createNotificationPopup(

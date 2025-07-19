@@ -4,6 +4,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Show Memories</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="notification-service.js"></script>
@@ -759,9 +760,9 @@
       // Episode/Photo image on the right (if available)
       let rightImageHtml = '';
       if (comment.photoUrl) {
-        rightImageHtml = `<img src="${comment.photoUrl}" alt="Photo" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; cursor: pointer; flex-shrink: 0;" onclick="openPhotoInMemory(${comment.photoId || 'null'}, '${comment.photoUrl}', event)">`;
+        rightImageHtml = `<img src="/get_photo_from_url?url=${encodeURIComponent(comment.photoUrl)}" alt="Photo" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; cursor: pointer; flex-shrink: 0;" onclick="openPhotoInMemory(${comment.photoId || 'null'}, '${comment.photoUrl}', event)">`;
       } else if (comment.episodePhoto) {
-        rightImageHtml = `<img src="${comment.episodePhoto}" alt="Episode" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; cursor: pointer; flex-shrink: 0;" onclick="openEpisodeInMemory(${comment.episodeId || 'null'}, event)">`;
+        rightImageHtml = `<img src="/get_photo_from_url?url=${encodeURIComponent(comment.episodePhoto)}" alt="Episode" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; cursor: pointer; flex-shrink: 0;" onclick="openEpisodeInMemory(${comment.episodeId || 'null'}, event)">`;
       }
       
       const contentDiv = document.createElement('div');
@@ -809,14 +810,6 @@
       event.stopPropagation();
       event.preventDefault();
       window.location.href = `user_profile.html?userId=${userId}`;
-    }
-      commentDiv.appendChild(text);
-      commentDiv.appendChild(actions);
-      
-      // Load comment likes
-      loadCommentLikes(comment.commentId, likeBtn);
-      
-      return commentDiv;
     }
 
     function createNestedCommentElement(comment, parentTargetType) {
