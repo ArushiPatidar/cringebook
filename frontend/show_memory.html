@@ -791,19 +791,60 @@
     function openPhotoInMemory(photoId, photoUrl, event) {
       event.stopPropagation();
       event.preventDefault();
-      if (photoId) {
-        window.open(photoUrl, '_blank');
-      } else {
-        window.open(photoUrl, '_blank');
-      }
+      // Show full view of the image
+      showImageFullView(photoUrl);
     }
 
     function openEpisodeInMemory(episodeId, event) {
       event.stopPropagation();
       event.preventDefault();
-      if (episodeId) {
-        window.location.href = `show_photos.html?episodeId=${episodeId}`;
-      }
+      // Get the episode photo and show full view instead of opening entire episode
+      const episodeImg = event.target;
+      const episodePhotoUrl = episodeImg.src.replace('/get_photo_from_url?url=', '').replace(window.location.origin, '');
+      const decodedUrl = decodeURIComponent(episodePhotoUrl);
+      showImageFullView(decodedUrl);
+    }
+
+    function showImageFullView(imageUrl) {
+      // Create full-screen image viewer
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed; 
+        top: 0; left: 0; 
+        width: 100%; height: 100%; 
+        background: rgba(0,0,0,0.9); 
+        z-index: 10000; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        cursor: pointer;
+      `;
+      
+      const img = document.createElement('img');
+      const fullImageUrl = imageUrl.startsWith('/get_photo_from_url') ? imageUrl : `/get_photo_from_url?url=${encodeURIComponent(imageUrl)}`;
+      img.src = fullImageUrl;
+      img.style.cssText = `
+        max-width: 90%; 
+        max-height: 90%; 
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      `;
+      
+      overlay.appendChild(img);
+      document.body.appendChild(overlay);
+      
+      // Close on click
+      overlay.onclick = () => document.body.removeChild(overlay);
+      
+      // Close on escape key
+      const closeHandler = (e) => {
+        if (e.key === 'Escape') {
+          document.body.removeChild(overlay);
+          document.removeEventListener('keydown', closeHandler);
+        }
+      };
+      document.addEventListener('keydown', closeHandler);
     }
 
     function viewUserProfileFromMemory(userId, event) {

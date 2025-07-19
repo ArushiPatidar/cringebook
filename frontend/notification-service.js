@@ -205,6 +205,7 @@ class NotificationService {
             z-index: 10000;
             border-left: 4px solid ${type === 'video_call' ? '#4CAF50' : '#2196F3'};
             animation: slideInRight 0.3s ease;
+            cursor: pointer;
         `;
 
         popup.innerHTML = `
@@ -214,19 +215,38 @@ class NotificationService {
                     <div style="color: #666; font-size: 14px; line-height: 1.4;">${message}</div>
                 </div>
                 <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                    ${type === 'video_call' ? `<button class="dismiss-btn" style="background: #9e9e9e; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">Dismiss</button>` : ''}
                     ${onDecline ? `<button class="decline-btn" style="background: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">Decline</button>` : ''}
                     <button class="accept-btn" style="background: ${type === 'video_call' ? '#4CAF50' : '#2196F3'}; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">${type === 'video_call' ? 'Answer' : 'Open'}</button>
                 </div>
             </div>
         `;
 
-        popup.querySelector('.accept-btn').onclick = () => {
+        popup.querySelector('.accept-btn').onclick = (e) => {
+            e.stopPropagation();
             onAccept();
             this.hideNotificationPopup(popup);
         };
 
+        // Make entire popup clickable (except buttons)
+        popup.onclick = (e) => {
+            if (!e.target.matches('button')) {
+                onAccept();
+                this.hideNotificationPopup(popup);
+            }
+        };
+
+        if (popup.querySelector('.dismiss-btn')) {
+            popup.querySelector('.dismiss-btn').onclick = (e) => {
+                e.stopPropagation();
+                this.stopRingtone();
+                this.hideNotificationPopup(popup);
+            };
+        }
+
         if (onDecline) {
-            popup.querySelector('.decline-btn').onclick = () => {
+            popup.querySelector('.decline-btn').onclick = (e) => {
+                e.stopPropagation();
                 onDecline();
                 this.hideNotificationPopup(popup);
             };

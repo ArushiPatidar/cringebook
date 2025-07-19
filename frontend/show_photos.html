@@ -4,9 +4,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Episode Photos - CringeBook</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="notification-service.js"></script>
     <style>
         /* Material Design 3 Color Scheme and Components */
         :root {
@@ -712,50 +714,35 @@
 
     function createCommentElement(comment) {
       const commentDiv = document.createElement('div');
-      commentDiv.style.padding = '6px 0';
-      commentDiv.style.borderBottom = '1px solid var(--md-outline-variant)';
-      commentDiv.style.fontSize = '12px';
+      commentDiv.style.cssText = 'margin-bottom: 8px; padding: 8px; background: var(--md-surface-variant); border-radius: 8px; display: flex; gap: 8px; align-items: flex-start; font-size: 11px;';
       
-      const author = document.createElement('div');
-      author.style.fontWeight = '500';
-      author.style.marginBottom = '2px';
-      author.textContent = comment.userFullName || 'Unknown User';
+      // Profile picture on the left
+      const profilePicHtml = comment.userProfilePicture 
+        ? `<img src="/uploads/profile_pictures/${comment.userProfilePicture}" alt="Profile" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjgiIGhlaWdodD0iMjgiIHZpZXdCb3g9IjAgMCAyOCAyOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTQiIGN5PSIxNCIgcj0iMTQiIGZpbGw9IiNlMGUwZTAiLz4KPHA+PC9wPgo8L3N2Zz4='">`
+        : '<div style="width: 28px; height: 28px; border-radius: 50%; background: var(--md-outline); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><span class="material-icons" style="font-size: 14px; color: var(--md-on-surface);">person</span></div>';
       
-      const text = document.createElement('div');
-      text.style.marginBottom = '4px';
-      text.textContent = comment.commentText;
-      
-      const actions = document.createElement('div');
-      actions.style.display = 'flex';
-      actions.style.alignItems = 'center';
-      actions.style.gap = '8px';
-      actions.style.fontSize = '11px';
-      actions.style.color = '#666';
-      
-      const likeBtn = document.createElement('button');
-      likeBtn.style.background = 'none';
-      likeBtn.style.border = 'none';
-      likeBtn.style.color = '#666';
-      likeBtn.style.cursor = 'pointer';
-      likeBtn.style.fontSize = '11px';
-      likeBtn.style.display = 'flex';
-      likeBtn.style.alignItems = 'center';
-      likeBtn.style.gap = '2px';
-      likeBtn.innerHTML = `<span class="material-icons" style="font-size: 14px;">favorite_border</span><span>0</span>`;
-      likeBtn.onclick = () => toggleCommentLike(comment.commentId, likeBtn);
-      
-      const timeSpan = document.createElement('span');
-      timeSpan.textContent = formatTime(comment.createdAt);
-      
-      actions.appendChild(likeBtn);
-      actions.appendChild(timeSpan);
-      
-      commentDiv.appendChild(author);
-      commentDiv.appendChild(text);
-      commentDiv.appendChild(actions);
+      commentDiv.innerHTML = `
+        ${profilePicHtml}
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 500; margin-bottom: 2px; color: var(--md-primary); cursor: pointer;" onclick="window.location.href='user_profile.html?userId=${comment.userId}'">
+            ${comment.userFullName || 'Unknown User'}
+          </div>
+          <div style="margin-bottom: 4px;">${comment.commentText}</div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 10px; color: #666;">
+            <button onclick="toggleCommentLike(${comment.commentId}, this)" style="background: none; border: none; color: #666; cursor: pointer; font-size: 10px; display: flex; align-items: center; gap: 2px;">
+              <span class="material-icons" style="font-size: 12px;">favorite_border</span>
+              <span>0</span>
+            </button>
+            <span>${formatTime(comment.createdAt)}</span>
+          </div>
+        </div>
+      `;
       
       // Load comment likes
+      const likeBtn = commentDiv.querySelector('button');
       loadCommentLikes(comment.commentId, likeBtn);
+      
+      return commentDiv;
       
       return commentDiv;
     }

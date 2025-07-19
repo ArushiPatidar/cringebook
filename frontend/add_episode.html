@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Episode</title>
+    <script src="notification-service.js"></script>
     <style>
         body {
           font-family: Arial, sans-serif;
@@ -18,9 +20,54 @@
           color: white;
           padding: 15px 20px;
           font-size: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
           width: 100%;
-          text-align: center;
           margin-bottom: 30px;
+        }
+
+        .topbar .title {
+          font-weight: bold;
+        }
+
+        .topbar .actions {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .topbar .actions button {
+          background: white;
+          color: #3f51b5;
+          border: none;
+          padding: 8px 12px;
+          font-weight: bold;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 12px;
+        }
+
+        .topbar .actions button:hover {
+          background-color: #e8eaf6;
+        }
+
+        /* Mobile responsive menu */
+        @media (max-width: 768px) {
+          .topbar {
+            flex-direction: column;
+            gap: 10px;
+          }
+          
+          .topbar .actions {
+            flex-wrap: wrap;
+            justify-content: center;
+          }
+          
+          .topbar .actions button {
+            padding: 6px 8px;
+            font-size: 11px;
+          }
         }
 
         form {
@@ -68,7 +115,19 @@
 </head>
 <body>
 
-<div class="topbar">➕ Add Episode</div>
+<div class="topbar">
+    <div class="title">➕ Add Episode</div>
+    <div class="actions">
+        <button onclick="window.location.href='feed.html'">📰 Feed</button>
+        <button onclick="window.location.href='messages.html'">💬 Messages</button>
+        <button onclick="window.location.href='profile.html'">👤 Profile</button>
+        <button onclick="window.location.href='search_users.html'">🔍 Find Friends</button>
+        <button onclick="window.location.href='friends_list.html'">👥 Friends</button>
+        <button onclick="window.location.href='friend_requests.html'">📨 Requests</button>
+        <button onclick="window.location.href='show_memory.html'">📸 My Memories</button>
+        <button onclick="logout()">🚪 Logout</button>
+    </div>
+</div>
 
 <form id="episodeForm">
     <label for="photo">Photo</label>
@@ -89,6 +148,11 @@
     function getTokenFromCookie() {
       const match = document.cookie.match(/(^| )Authorization=([^;]+)/);
       return match ? decodeURIComponent(match[2]) : null;
+    }
+
+    function logout() {
+      document.cookie = "Authorization=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      window.location.href = "/frontend/login.html";
     }
 
     function getQueryParam(name) {
