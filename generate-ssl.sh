@@ -17,8 +17,8 @@ keytool -genkeypair \
     -validity 365 \
     -storepass changeit \
     -keypass changeit \
-    -dname "CN=localhost,OU=CringeBook,O=CringeBook,L=City,S=State,C=US" \
-    -ext SAN=dns:localhost,ip:127.0.0.1,dns:cringebook-by-arushi.centralindia.cloudapp.azure.com
+    -dname "CN=cringebook-by-arushi.centralindia.cloudapp.azure.com,OU=CringeBook,O=CringeBook,L=City,S=State,C=US" \
+    -ext SAN=dns:localhost,ip:127.0.0.1,dns:cringebook-by-arushi.centralindia.cloudapp.azure.com,ip:0.0.0.0
 
 if [ $? -eq 0 ]; then
     echo "SSL certificate generated successfully!"
@@ -54,10 +54,14 @@ server.ssl.key-store-password=changeit
 server.ssl.keyStoreType=PKCS12
 server.ssl.keyAlias=cringebook
 
-# Redirect HTTP to HTTPS
+# Additional HTTP configuration for redirects if needed
 server.require-ssl=false
-# Additional HTTP port for redirect (if needed)
 server.http.port=8080
+
+# Additional server configuration
+server.connection-timeout=20000
+server.tomcat.connection-timeout=20000
+server.tomcat.max-http-post-size=100MB
 EOF
     
     echo "HTTPS configuration updated successfully!"

@@ -88,10 +88,19 @@
 
         .md-button-text {
           background-color: transparent;
-          color: var(--md-on-primary);
+          color: var(--md-on-surface);
         }
 
         .md-button-text:hover {
+          background-color: rgba(63, 81, 181, 0.12);
+        }
+
+        /* Override for top bar buttons */
+        .md-top-app-bar .md-button-text {
+          color: var(--md-on-primary);
+        }
+
+        .md-top-app-bar .md-button-text:hover {
           background-color: rgba(255, 255, 255, 0.12);
         }
 
@@ -548,7 +557,12 @@
         const token = getTokenFromCookie();
         if (!token) return;
 
-        fetch(`/comments?targetType=${targetType}&targetId=${targetId}`, {
+        // Use nested comments API for memories to show episode and photo comments
+        const endpoint = targetType === 'memory' ? 
+            `/nested-comments?targetType=${targetType}&targetId=${targetId}` :
+            `/comments?targetType=${targetType}&targetId=${targetId}`;
+
+        fetch(endpoint, {
             method: 'GET',
             headers: {
                 'Authorization': token
@@ -559,20 +573,66 @@
             const commentsList = document.getElementById(`comments-list-${targetId}`);
             const commentCount = document.getElementById(`comment-count-${targetId}`);
             
-            commentCount.textContent = data.commentCount;
-            
-            commentsList.innerHTML = '';
-            data.comments.forEach(comment => {
-                const commentDiv = document.createElement('div');
-                commentDiv.style.cssText = 'margin-bottom: 8px; padding: 8px; background: var(--md-surface-variant); border-radius: 8px;';
-                commentDiv.innerHTML = `
-                    <div style="font-weight: 500; font-size: 14px; margin-bottom: 4px;">${escapeHtml(comment.userFullName || comment.userName || 'Unknown User')}</div>
-                    <div style="font-size: 14px;">${escapeHtml(comment.commentText)}</div>
-                `;
-                commentsList.appendChild(commentDiv);
-            });
+            if (targetType === 'memory' && data.directComments && data.nestedComments) {
+                // Handle nested comments for memories
+                const totalCount = data.directComments.length + data.nestedComments.length;
+                commentCount.textContent = totalCount;
+                
+                commentsList.innerHTML = '';
+                
+                // Display direct memory comments
+                data.directComments.forEach(comment => {
+                    const commentDiv = createCommentElement(comment, '💭 Memory');
+                    commentsList.appendChild(commentDiv);
+                });
+                
+                // Display nested comments from episodes and photos
+                if (data.nestedComments.length > 0) {
+                    const nestedDiv = document.createElement('div');
+                    nestedDiv.innerHTML = `
+                        <div style="margin: 16px 0 8px 0; padding: 8px; border-top: 1px solid var(--md-outline-variant);">
+                            <strong>Comments from Episodes & Photos</strong>
+                        </div>
+                    `;
+                    commentsList.appendChild(nestedDiv);
+                    
+                    data.nestedComments.forEach(comment => {
+                        const prefix = comment.photoUrl ? '📸 Photo' : '🎬 Episode';
+                        const context = comment.episodeTitle ? ` (${comment.episodeTitle})` : '';
+                        const commentDiv = createCommentElement(comment, prefix + context);
+                        commentsList.appendChild(commentDiv);
+                    });
+                }
+            } else {
+                // Handle regular comments
+                const comments = data.comments || [];
+                const count = data.commentCount || comments.length;
+                commentCount.textContent = count;
+                
+                commentsList.innerHTML = '';
+                comments.forEach(comment => {
+                    const commentDiv = createCommentElement(comment);
+                    commentsList.appendChild(commentDiv);
+                });
+            }
         })
         .catch(err => console.error('Error loading comments:', err));
+    }
+
+    function createCommentElement(comment, prefix = '') {
+        const commentDiv = document.createElement('div');
+        commentDiv.style.cssText = 'margin-bottom: 8px; padding: 8px; background: var(--md-surface-variant); border-radius: 8px;';
+        
+        const prefixHtml = prefix ? `<span style="color: var(--md-primary); font-size: 12px; font-weight: 500;">${prefix}</span><br>` : '';
+        
+        commentDiv.innerHTML = `
+            ${prefixHtml}
+            <div style="font-weight: 500; font-size: 14px; margin-bottom: 4px; color: var(--md-primary); cursor: pointer;" onclick="viewUserProfile(${comment.userId}, event)">
+                ${escapeHtml(comment.userFullName || comment.userName || 'Unknown User')}
+            </div>
+            <div style="font-size: 14px; color: var(--md-on-surface);">${escapeHtml(comment.commentText)}</div>
+        `;
+        return commentDiv;
     }
 
     // Event listeners
