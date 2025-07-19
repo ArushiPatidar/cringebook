@@ -115,7 +115,7 @@
       formData.append("photo", "placeholder"); // server overrides this
       formData.append("memoryId", memoryId); // backend needs this to associate episode
 
-      fetch("http://"+window.location.host+"/save episode", {
+      fetch(window.location.protocol + "//" + window.location.host + "/save episode", {
         method: "POST",
         headers: {
           "Authorization": token

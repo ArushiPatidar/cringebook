@@ -48,6 +48,7 @@ spring.servlet.multipart.max-request-size=100MB
 
 # HTTPS Configuration
 server.port=8443
+server.address=0.0.0.0
 server.ssl.key-store=classpath:keystore.p12
 server.ssl.key-store-password=changeit
 server.ssl.keyStoreType=PKCS12
@@ -65,10 +66,11 @@ EOF
     echo "1. Run: chmod +x generate-ssl.sh"
     echo "2. Run: ./generate-ssl.sh (if not already done)"
     echo "3. Run: mvn spring-boot:run"
-    echo "4. Access: https://localhost:8443/frontend/login.html"
+    echo "4. Access locally: https://localhost:8443/frontend/login.html"
+    echo "5. Access via domain: https://cringebook-by-arushi.centralindia.cloudapp.azure.com:8443/frontend/login.html"
     echo ""
     echo "Note: Browser will show security warning for self-signed certificate."
-    echo "Click 'Advanced' -> 'Proceed to localhost (unsafe)' to continue."
+    echo "Click 'Advanced' -> 'Proceed to [domain] (unsafe)' to continue."
     
 else
     echo "Failed to generate SSL certificate!"

@@ -393,7 +393,8 @@
             return;
         }
 
-        websocket = new WebSocket(`ws://${window.location.host}/video-call-ws?token=${encodeURIComponent(token)}`);
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        websocket = new WebSocket(`${wsProtocol}//${window.location.host}/video-call-ws?token=${encodeURIComponent(token)}`);
         
         websocket.onopen = () => {
             console.log('WebSocket connected');

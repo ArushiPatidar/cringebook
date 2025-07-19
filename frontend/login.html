@@ -92,7 +92,7 @@
       formData.append("username", form.username.value);
       formData.append("password", form.password.value);
 
-      fetch("http://"+window.location.host+"/login", {
+      fetch(window.location.protocol + "//" + window.location.host + "/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"

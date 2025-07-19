@@ -38,6 +38,8 @@ public class HttpsRedirectConfig {
         connector.setPort(8080);
         connector.setSecure(false);
         connector.setRedirectPort(8443);
+        // Bind to all interfaces
+        connector.setProperty("address", "0.0.0.0");
         return connector;
     }
 }
