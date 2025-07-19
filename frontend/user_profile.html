@@ -726,13 +726,29 @@
         }
 
         function startVideoCall() {
+            // Get userId from URL if not already available
             if (!userId) {
-                alert('User information not available');
+                const urlParams = new URLSearchParams(window.location.search);
+                userId = urlParams.get('userId');
+            }
+            
+            if (!userId) {
+                alert('User information not available. Please refresh the page and try again.');
+                console.error('UserId not available for video call');
                 return;
             }
             
-            const userName = document.querySelector('.profile-name').textContent;
-            window.open(`video_call.html?friendId=${userId}&friendName=${encodeURIComponent(userName)}`, '_blank');
+            // Get userName from the profile name element
+            const userNameElement = document.querySelector('.profile-name');
+            const userName = userNameElement ? userNameElement.textContent.trim() : 'Friend';
+            
+            if (!userName || userName === '') {
+                alert('User name not available. Please wait for the profile to load.');
+                return;
+            }
+            
+            console.log('Starting video call with:', { userId, userName });
+            window.open(`video_call.html?friendId=${userId}&friendName=${encodeURIComponent(userName)}&initiator=true`, '_blank');
         }
 
         function toggleLike(targetType, targetId) {
