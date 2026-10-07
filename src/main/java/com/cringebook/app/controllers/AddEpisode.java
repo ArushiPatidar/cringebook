@@ -2,6 +2,7 @@ package com.cringebook.app.controllers;
 
 import com.cringebook.app.entity.Episode;
 import com.cringebook.app.entity.Memory;
+import com.cringebook.app.config.StorageLocations;
 import com.cringebook.app.repository.EpisodeRepo;
 import com.cringebook.app.repository.MemoryRepo;
 
@@ -26,6 +27,9 @@ public class AddEpisode {
     private EpisodeRepo episodeRepo;
     @Autowired
     private MemoryRepo memoryRepo;
+
+    @Autowired
+    private StorageLocations storage;
 
     Authentication authentication = new Authentication();
 
@@ -54,9 +58,9 @@ public class AddEpisode {
         Integer user_id = authentication.getIdFromToken(jwtToken);
         if (image != null && !image.isEmpty()){
             String uuid = UUID.randomUUID().toString();
-            String filepath = "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + uuid + image.getOriginalFilename();
-            image.transferTo(new File(filepath));
-            photo = uuid + image.getOriginalFilename();
+            String storedName = uuid + image.getOriginalFilename();
+            image.transferTo(storage.uploadFile(storedName));
+            photo = storedName;
         }
         if (user_id !=0){
             Optional<Memory> episodeMemory = memoryRepo.findById(memoryId);
@@ -82,9 +86,9 @@ public class AddEpisode {
         Integer user_id = authentication.getIdFromToken(jwtToken);
         if (image != null && !image.isEmpty()){
             String uuid = UUID.randomUUID().toString();
-            String filepath = "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + uuid + image.getOriginalFilename();
-            image.transferTo(new File(filepath));
-            photo = uuid + image.getOriginalFilename();
+            String storedName = uuid + image.getOriginalFilename();
+            image.transferTo(storage.uploadFile(storedName));
+            photo = storedName;
         }
         if (user_id != 0){
             Optional<Episode> episode = episodeRepo.findById(episodeId);

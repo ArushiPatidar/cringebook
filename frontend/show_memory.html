@@ -300,7 +300,7 @@
           if (description) formData.append("description", description);
           if (fileInput.files.length > 0) formData.append("image", fileInput.files[0]);
 
-          fetch("http://"+window.location.host+"/update memory", {
+          fetch("/update memory", {
             method: "PUT",
             headers: { "Authorization": token },
             body: formData
@@ -311,7 +311,7 @@
 
     function confirmDelete() {
       const token = getTokenFromCookie();
-      fetch(`http://${window.location.host}/delete memory?memoryId=${currentDeleteId}`, {
+      fetch(`/delete memory?memoryId=${currentDeleteId}`, {
         method: "DELETE",
         headers: { "Authorization": token }
       }).then(() => location.reload());
@@ -319,7 +319,7 @@
 
     function fetchMemories() {
       const token = getTokenFromCookie();
-      fetch("http://"+window.location.host+"/show_memory", {
+      fetch("/show_memory", {
         method: "GET",
         headers: { "Authorization": token }
       })
@@ -332,7 +332,7 @@
           card.className = "memory-card";
 
           const image = document.createElement("img");
-          image.src = `http://${window.location.host}/get_photo_from_url?url=${encodeURIComponent(memory.photo)}`;
+          image.src = `/get_photo_from_url?url=${encodeURIComponent(memory.photo)}`;
           image.alt = memory.title;
           card.appendChild(image);
 

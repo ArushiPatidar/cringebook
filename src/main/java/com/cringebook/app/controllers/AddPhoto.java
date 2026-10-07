@@ -4,6 +4,7 @@ package com.cringebook.app.controllers;
 import com.cringebook.app.entity.Episode;
 import com.cringebook.app.entity.Interest;
 import com.cringebook.app.entity.Photo;
+import com.cringebook.app.config.StorageLocations;
 import com.cringebook.app.repository.EpisodeRepo;
 import com.cringebook.app.repository.MemoryRepo;
 import com.cringebook.app.repository.PhotoRepo;
@@ -18,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -30,6 +32,9 @@ public class AddPhoto {
 
     @Autowired
     private EpisodeRepo episodeRepo;
+
+    @Autowired
+    private StorageLocations storage;
 
     Authentication authentication = new Authentication();
     @GetMapping("/show_photos")
@@ -52,10 +57,17 @@ public class AddPhoto {
     @GetMapping("/get_photo_from_url")
     public ResponseEntity<byte[]> getPhotoFromUrl(String url) throws IOException {
 
-        System.out.println("path =  " + "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\"+ url);
-        File imgFile = new File("C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + url);
+        Path imgFile;
+        try {
+            imgFile = storage.uploadFile(url);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        if (!Files.isRegularFile(imgFile)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
 
-        byte[]  imageByte = Files.readAllBytes(imgFile.toPath());
+        byte[]  imageByte = Files.readAllBytes(imgFile);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.IMAGE_JPEG);
@@ -76,14 +88,14 @@ public class AddPhoto {
 
             // saving uploaded file to directory
 
-            String filepath = "C:\\Users\\arushi\\Documents\\app\\app\\uploads\\" + uuid + image.getOriginalFilename();
-            image.transferTo(new File(filepath));
+            String storedName = uuid + image.getOriginalFilename();
+            image.transferTo(storage.uploadFile(storedName));
 
 
             Integer user_id = authentication.getIdFromToken(jwtToken);
             Integer epiUserId = photoRepo.getUserIdForEpisodeId(episodeId);
             if (user_id != 0 && Objects.equals(epiUserId, user_id)) {
-                Photo photoObj = new Photo(episodeId, uuid + image.getOriginalFilename());
+                Photo photoObj = new Photo(episodeId, storedName);
                 try {
                     Photo insertedPhoto = photoRepo.save(photoObj);
                     return new ResponseEntity<>(insertedPhoto.getPhoto_id(), HttpStatus.OK);
