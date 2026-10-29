@@ -22,6 +22,16 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+# Moved to the Oracle VM (2026-10-29, god v2.29.0): the live copy is the
+# systemd unit app-cringebook on oracle.gogillu.live and 127.0.0.1:9899 here is
+# an SSH forward to it (task GodOracleAppsTunnel). Never start a second
+# Windows copy - it would fork the data. Deploy a new version with:
+#   ssh ubuntu@oracle.gogillu.live sudo appctl deploy cringebook
+$oracleMoved = 'C:\Users\arushi\god\scripts\oracle-apps-tunnels.json'
+if ((Test-Path $oracleMoved) -and @((Get-Content $oracleMoved -Raw | ConvertFrom-Json).local | Where-Object { $_ -and $_.port -eq 9899 }).Count) {
+    Write-Host 'cringebook runs on the Oracle VM (app-cringebook); not starting a Windows copy. Deploy: ssh ubuntu@oracle.gogillu.live sudo appctl deploy cringebook'
+    exit 0
+}
 
 $Jar    = Join-Path $RepoRoot 'target\app-0.0.1-SNAPSHOT.jar'
 $LogDir = Join-Path $RepoRoot 'logs'
